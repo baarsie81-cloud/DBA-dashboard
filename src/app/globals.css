@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --dba-dark-green: #005b4a;
+  --dba-green: #00765f;
+  --dba-lime: #8bd232;
+  --dba-charcoal: #333536;
+  --dba-muted: #6b716e;
+  --dba-background: #f6f7f5;
+  --dba-surface: #ffffff;
+  --dba-border: #e4e7e5;
+  --dba-border-strong: #d5dad7;
+  --dba-sidebar-active: #0a6b58;
+  --dba-sidebar-hover: #0a6654;
+  --dba-pill-bg: #eef1ef;
+  --dba-pill-text: #4a504d;
+}
+
+@theme inline {
+  --color-dba-dark-green: var(--dba-dark-green);
+  --color-dba-green: var(--dba-green);
+  --color-dba-lime: var(--dba-lime);
+  --color-dba-charcoal: var(--dba-charcoal);
+  --color-dba-muted: var(--dba-muted);
+  --color-dba-background: var(--dba-background);
+  --color-dba-surface: var(--dba-surface);
+  --color-dba-border: var(--dba-border);
+  --color-dba-border-strong: var(--dba-border-strong);
+  --color-dba-sidebar-active: var(--dba-sidebar-active);
+  --color-dba-sidebar-hover: var(--dba-sidebar-hover);
+  --color-dba-pill-bg: var(--dba-pill-bg);
+  --color-dba-pill-text: var(--dba-pill-text);
+  --font-sans: var(--font-source-sans);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--dba-background);
+  color: var(--dba-charcoal);
+  font-family: var(--font-source-sans), "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
