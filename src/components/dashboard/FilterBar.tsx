@@ -23,14 +23,14 @@ export function FilterBar() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Zoek op klantnaam..."
-          className="h-10 w-full rounded-lg border border-dba-border bg-dba-background pr-3 pl-9 text-sm text-dba-charcoal outline-none placeholder:text-dba-muted focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-lime/50 focus-visible:ring-offset-1"
+          className="h-10 w-full rounded-lg border border-dba-border bg-dba-background pr-3 pl-9 text-sm text-dba-charcoal outline-none placeholder:text-dba-muted focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
         />
       </label>
 
       <select
         value={advisor}
         onChange={(event) => setAdvisor(event.target.value)}
-        className="h-10 min-w-[160px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-lime/50 focus-visible:ring-offset-1"
+        className="h-10 min-w-[160px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
         aria-label="Filter op adviseur"
       >
         <option value="">Alle adviseurs</option>
@@ -44,7 +44,7 @@ export function FilterBar() {
       <select
         value={lender}
         onChange={(event) => setLender(event.target.value)}
-        className="h-10 min-w-[180px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-lime/50 focus-visible:ring-offset-1"
+        className="h-10 min-w-[180px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
         aria-label="Filter op geldverstrekker"
       >
         <option value="">Alle geldverstrekkers</option>
@@ -58,7 +58,7 @@ export function FilterBar() {
       <select
         value={dateFilter}
         onChange={(event) => setDateFilter(event.target.value)}
-        className="h-10 min-w-[140px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-lime/50 focus-visible:ring-offset-1"
+        className="h-10 min-w-[140px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
         aria-label="Filter op datum"
       >
         <option value="">Alle datums</option>
@@ -69,7 +69,7 @@ export function FilterBar() {
 
       <button
         type="button"
-        className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-lg bg-dba-dark-green px-4 text-sm font-medium text-white transition-colors hover:bg-dba-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-lime/70 focus-visible:ring-offset-2"
+        className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-lg bg-dba-dark-green px-4 text-sm font-medium text-white transition-colors hover:bg-dba-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-dark-green focus-visible:ring-offset-2"
       >
         <Plus className="h-4 w-4" strokeWidth={2} />
         Dossier toevoegen
