@@ -81,3 +81,4 @@ export type Advisor = typeof advisors.$inferSelect;
 export type Lender = typeof lenders.$inferSelect;
 export type MortgageCase = typeof mortgageCases.$inferSelect;
 export type DashboardSetting = typeof dashboardSettings.$inferSelect;
+export type MortgagePhase = (typeof mortgagePhaseEnum.enumValues)[number];

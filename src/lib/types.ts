@@ -4,13 +4,14 @@ export type MortgagePhase =
   | "Geannuleerd"
   | "Afgehandeld";
 
+/** Row shape for the mortgage table UI. */
 export type MortgageDossier = {
   id: string;
   clientName: string;
-  advisor: string;
-  lender: string;
-  principal: number;
-  applicationDate: string;
+  advisor: string | null;
+  lender: string | null;
+  principal: number | null;
+  applicationDate: string | null;
   conditionalDate: string | null;
   closingDate: string | null;
   phase: MortgagePhase;
