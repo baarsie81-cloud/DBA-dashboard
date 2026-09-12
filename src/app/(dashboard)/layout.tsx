@@ -1,10 +1,13 @@
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { requireSession } from "@/lib/auth/session";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await requireSession();
+
   return (
     <div className="flex min-h-screen bg-dba-background">
       <Sidebar />
