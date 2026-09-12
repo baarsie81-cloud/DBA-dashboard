@@ -90,7 +90,7 @@ export function MortgageTable({
                 <td className="px-4 py-3.5 text-right">
                   <button
                     type="button"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-lime/60 focus-visible:ring-offset-1"
                     aria-label={`Acties voor ${dossier.clientName}`}
                   >
                     <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
@@ -110,7 +110,7 @@ export function MortgageTable({
           <button
             type="button"
             disabled={page <= 1}
-            className="rounded-md px-3 py-1.5 text-[13px] text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md px-3 py-1.5 text-[13px] text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-lime/60 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Vorige
           </button>
@@ -121,7 +121,7 @@ export function MortgageTable({
               <button
                 key={pageNumber}
                 type="button"
-                className={`min-w-8 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors ${
+                className={`min-w-8 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-lime/60 focus-visible:ring-offset-1 ${
                   isActive
                     ? "bg-dba-dark-green text-white"
                     : "text-dba-muted hover:bg-dba-background hover:text-dba-charcoal"
@@ -134,7 +134,7 @@ export function MortgageTable({
           <button
             type="button"
             disabled={page >= totalPages}
-            className="rounded-md px-3 py-1.5 text-[13px] text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md px-3 py-1.5 text-[13px] text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-lime/60 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Volgende
           </button>

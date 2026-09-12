@@ -20,7 +20,11 @@ export function Logo({
   return (
     <Link
       href="/in-behandeling"
-      className={`inline-flex items-center gap-2.5 no-underline ${className}`}
+      className={`inline-flex items-center gap-2.5 rounded-md no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-lime/80 focus-visible:ring-offset-2 ${
+        isLight
+          ? "focus-visible:ring-offset-dba-dark-green"
+          : "focus-visible:ring-offset-white"
+      } ${className}`}
       aria-label="DBA Advies"
     >
       <span
@@ -42,7 +46,7 @@ export function Logo({
             DBA Advies
           </span>
           {isLight ? (
-            <span className="text-[11px] font-normal text-white/65">
+            <span className="text-[11px] font-normal text-white/70">
               Hypotheekdashboard
             </span>
           ) : null}
