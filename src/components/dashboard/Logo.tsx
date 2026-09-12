@@ -1,0 +1,53 @@
+import Link from "next/link";
+
+type LogoProps = {
+  variant?: "light" | "dark";
+  showWordmark?: boolean;
+  className?: string;
+};
+
+/**
+ * Temporary text logo placeholder.
+ * Swap the inner markup for an <Image> when the real DBA asset is available.
+ */
+export function Logo({
+  variant = "light",
+  showWordmark = true,
+  className = "",
+}: LogoProps) {
+  const isLight = variant === "light";
+
+  return (
+    <Link
+      href="/in-behandeling"
+      className={`inline-flex items-center gap-2.5 no-underline ${className}`}
+      aria-label="DBA Advies"
+    >
+      <span
+        className={`flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold tracking-wide ${
+          isLight
+            ? "bg-white/15 text-white ring-1 ring-white/20"
+            : "bg-dba-dark-green text-white"
+        }`}
+      >
+        DBA
+      </span>
+      {showWordmark ? (
+        <span className="flex flex-col leading-tight">
+          <span
+            className={`text-[15px] font-semibold tracking-wide ${
+              isLight ? "text-white" : "text-dba-dark-green"
+            }`}
+          >
+            DBA Advies
+          </span>
+          {isLight ? (
+            <span className="text-[11px] font-normal text-white/65">
+              Hypotheekdashboard
+            </span>
+          ) : null}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
