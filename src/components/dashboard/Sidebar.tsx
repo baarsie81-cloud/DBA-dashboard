@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { logoutAction } from "@/lib/auth/actions";
 import { Logo } from "./Logo";
 
 type NavItem = {
@@ -133,13 +134,15 @@ export function Sidebar() {
 
       <div className="border-t border-white/10 px-4 py-4">
         <p className="px-1 text-sm font-medium text-white/90">DBA Advies</p>
-        <button
-          type="button"
-          className={`mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white ${focusRing}`}
-        >
-          <LogOut className="h-4 w-4" strokeWidth={1.75} />
-          Uitloggen
-        </button>
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            className={`mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white ${focusRing}`}
+          >
+            <LogOut className="h-4 w-4" strokeWidth={1.75} />
+            Uitloggen
+          </button>
+        </form>
       </div>
     </aside>
   );
