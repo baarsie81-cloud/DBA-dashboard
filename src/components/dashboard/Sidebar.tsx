@@ -40,7 +40,7 @@ const primaryNav: NavItem[] = [
 
 const adminNav: NavItem[] = [
   { href: "/adviseurs", label: "Adviseurs", icon: Users, enabled: true },
-  { href: "/geldverstrekkers", label: "Geldverstrekkers", icon: Building2 },
+  { href: "/geldverstrekkers", label: "Geldverstrekkers", icon: Building2, enabled: true },
   { href: "/instellingen", label: "Instellingen", icon: Settings },
 ];
 
