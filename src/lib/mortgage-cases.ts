@@ -1,6 +1,7 @@
 import type { MortgageCaseRow } from "@/db/queries/mortgage-cases";
 import { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
 import { formatCurrency } from "@/lib/format";
+import type { MortgagePhaseKpiVariant } from "@/lib/mortgage-phase-config";
 import type { KpiItem, MortgageDossier, MortgagePhase } from "@/lib/types";
 
 export { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
@@ -42,6 +43,7 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
     conditionalDate: toIsoDate(row.financingConditionDate),
     closingDate: toIsoDate(row.passingDate),
     offerExpiryDate: toIsoDate(row.offerExpiryDate),
+    feeProcessingDate: toIsoDate(row.feeProcessingDate),
     phase: PHASE_LABELS[row.phase] ?? "In behandeling",
   };
 }
@@ -55,15 +57,14 @@ function isWithinInclusiveRange(
   return value >= start && value <= end;
 }
 
+function totalPrincipal(dossiers: MortgageDossier[]): number {
+  return dossiers.reduce((sum, dossier) => sum + (dossier.principal ?? 0), 0);
+}
+
 /** Simple KPIs derived from the already-fetched in-behandeling dataset. */
 export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
   const today = todayIsoAmsterdam();
   const until = addDaysIso(today, 14);
-
-  const totalPrincipal = dossiers.reduce(
-    (sum, dossier) => sum + (dossier.principal ?? 0),
-    0,
-  );
 
   const passingSoon = dossiers.filter((dossier) =>
     isWithinInclusiveRange(dossier.closingDate, today, until),
@@ -86,7 +87,7 @@ export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
     },
     {
       id: "kpi-principal",
-      value: formatCurrency(totalPrincipal),
+      value: formatCurrency(totalPrincipal(dossiers)),
       label: "Totale hoofdsom",
       icon: "euro",
     },
@@ -109,4 +110,62 @@ export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
       icon: "alert",
     },
   ];
+}
+
+function buildCompactPhaseKpis(
+  dossiers: MortgageDossier[],
+  labels: { count: string; principal: string },
+): KpiItem[] {
+  return [
+    {
+      id: "kpi-dossiers",
+      value: String(dossiers.length),
+      label: labels.count,
+      icon: "folder",
+    },
+    {
+      id: "kpi-principal",
+      value: formatCurrency(totalPrincipal(dossiers)),
+      label: labels.principal,
+      icon: "euro",
+    },
+  ];
+}
+
+export function buildPhaseKpis(
+  variant: MortgagePhaseKpiVariant,
+  dossiers: MortgageDossier[],
+): KpiItem[] {
+  switch (variant) {
+    case "prospect":
+      return buildCompactPhaseKpis(dossiers, {
+        count: "Aantal prospects",
+        principal: "Totale hoofdsom prospects",
+      });
+    case "geannuleerd":
+      return buildCompactPhaseKpis(dossiers, {
+        count: "Aantal geannuleerd",
+        principal: "Totale hoofdsom geannuleerd",
+      });
+    case "afgehandeld": {
+      const unprocessed = dossiers.filter(
+        (dossier) => !dossier.feeProcessingDate,
+      ).length;
+      return [
+        ...buildCompactPhaseKpis(dossiers, {
+          count: "Aantal afgehandeld",
+          principal: "Totale hoofdsom afgehandeld",
+        }),
+        {
+          id: "kpi-fee-unprocessed",
+          value: String(unprocessed),
+          label: "Vergoeding nog te verwerken",
+          icon: "clock",
+        },
+      ];
+    }
+    case "in_behandeling":
+    default:
+      return buildInBehandelingKpis(dossiers);
+  }
 }

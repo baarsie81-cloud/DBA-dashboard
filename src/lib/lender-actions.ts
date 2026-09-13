@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { MORTGAGE_VIEW_PATHS } from "@/lib/mortgage-phase-config";
 import {
   createLender,
   findLenderByName,
@@ -63,7 +64,9 @@ export async function createLenderAction(
   try {
     await createLender({ name: parsed.name, active: parsed.active });
     revalidatePath("/geldverstrekkers");
-    revalidatePath("/in-behandeling");
+    for (const path of MORTGAGE_VIEW_PATHS) {
+      revalidatePath(path);
+    }
     return { ok: true };
   } catch {
     return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -111,7 +114,9 @@ export async function updateLenderAction(
       return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };
     }
     revalidatePath("/geldverstrekkers");
-    revalidatePath("/in-behandeling");
+    for (const path of MORTGAGE_VIEW_PATHS) {
+      revalidatePath(path);
+    }
     return { ok: true };
   } catch {
     return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };

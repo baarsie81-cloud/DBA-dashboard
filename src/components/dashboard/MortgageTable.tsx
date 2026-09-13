@@ -42,10 +42,11 @@ import {
 import {
   buildMortgageListHref,
   DEFAULT_DIRECTION,
-  DEFAULT_SORT,
+  DEFAULT_LIST_PARAM_DEFAULTS,
   parseMortgageListParams,
   type MortgageSortField,
 } from "@/lib/mortgage-list-params";
+import { getMortgagePhasePageConfig } from "@/lib/mortgage-phase-config";
 import { PHASE_OPTIONS } from "@/lib/mortgage-validation";
 import type { MortgageDossier } from "@/lib/types";
 
@@ -53,6 +54,7 @@ type MortgageTableProps = {
   dossiers: MortgageDossier[];
   columnOrder: MortgageColumnKey[];
   hasActiveFilters?: boolean;
+  emptyState?: string;
   onEdit?: (id: string) => void;
   onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
 };
@@ -288,6 +290,15 @@ function renderColumnCell(
           <OfferExpiryCell value={dossier.offerExpiryDate} />
         </td>
       );
+    case "fee_processing_date":
+      return (
+        <td
+          key={columnKey}
+          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+        >
+          {formatDateNl(dossier.feeProcessingDate)}
+        </td>
+      );
     case "phase":
       return (
         <td key={columnKey} className="px-4 py-3.5 whitespace-nowrap">
@@ -307,6 +318,7 @@ export function MortgageTable({
   dossiers,
   columnOrder: initialColumnOrder,
   hasActiveFilters = false,
+  emptyState = "Geen dossiers gevonden.",
   onEdit,
   onPhaseChange,
 }: MortgageTableProps) {
@@ -315,7 +327,16 @@ export function MortgageTable({
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
   const [savingOrder, startSaveTransition] = useTransition();
-  const filters = parseMortgageListParams(searchParams);
+  const listDefaults = useMemo(() => {
+    const config = getMortgagePhasePageConfig(pathname);
+    return config
+      ? {
+          sort: config.defaultSort,
+          direction: config.defaultDirection,
+        }
+      : DEFAULT_LIST_PARAM_DEFAULTS;
+  }, [pathname]);
+  const filters = parseMortgageListParams(searchParams, listDefaults);
   const total = dossiers.length;
 
   const normalizedInitial = useMemo(
@@ -343,16 +364,23 @@ export function MortgageTable({
           : "asc"
         : DEFAULT_DIRECTION;
 
-    const href = buildMortgageListHref(pathname, searchParams, {
-      sort:
-        field === DEFAULT_SORT && nextDirection === DEFAULT_DIRECTION
-          ? null
-          : field,
-      direction:
-        field === DEFAULT_SORT && nextDirection === DEFAULT_DIRECTION
-          ? null
-          : nextDirection,
-    });
+    const href = buildMortgageListHref(
+      pathname,
+      searchParams,
+      {
+        sort:
+          field === listDefaults.sort &&
+          nextDirection === listDefaults.direction
+            ? null
+            : field,
+        direction:
+          field === listDefaults.sort &&
+          nextDirection === listDefaults.direction
+            ? null
+            : nextDirection,
+      },
+      listDefaults,
+    );
 
     startTransition(() => {
       router.push(href);
@@ -410,7 +438,7 @@ export function MortgageTable({
 
   const emptyMessage = hasActiveFilters
     ? "Geen dossiers gevonden met deze filters."
-    : "Geen dossiers in behandeling.";
+    : emptyState;
 
   const isDefaultOrder =
     columnOrder.length === DEFAULT_MORTGAGE_COLUMN_ORDER.length &&
