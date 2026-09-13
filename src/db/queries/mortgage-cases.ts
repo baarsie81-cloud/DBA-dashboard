@@ -1,4 +1,11 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gte, ilike, lte, sql, type SQL } from "drizzle-orm";
+import type {
+  MortgageDeadlineFilter,
+  MortgageListFilters,
+  MortgageSortDirection,
+  MortgageSortField,
+} from "@/lib/mortgage-list-params";
+import { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
 import { getDb } from "@/db";
 import { advisors, lenders, mortgageCases } from "@/db/schema";
 import type { MortgageCase, MortgagePhase as DbMortgagePhase } from "@/db/schema";
@@ -50,11 +57,71 @@ export type MortgageCaseWriteInput = {
   phase: DbMortgagePhase;
 };
 
+function buildOrderBy(
+  sort: MortgageSortField,
+  direction: MortgageSortDirection,
+): SQL {
+  const dir = direction === "desc" ? "DESC" : "ASC";
+
+  switch (sort) {
+    case "customer_name":
+      return sql`${mortgageCases.customerName} ${sql.raw(dir)} NULLS LAST`;
+    case "advisor":
+      return sql`${advisors.name} ${sql.raw(dir)} NULLS LAST`;
+    case "lender":
+      return sql`${lenders.name} ${sql.raw(dir)} NULLS LAST`;
+    case "principal":
+      return sql`${mortgageCases.principalAmount} ${sql.raw(dir)} NULLS LAST`;
+    case "financing_condition_date":
+      return sql`${mortgageCases.financingConditionDate} ${sql.raw(dir)} NULLS LAST`;
+    case "passing_date":
+    default:
+      return sql`${mortgageCases.passingDate} ${sql.raw(dir)} NULLS LAST`;
+  }
+}
+
+function buildPhaseFilters(
+  phase: DbMortgagePhase,
+  filters?: Partial<MortgageListFilters>,
+): SQL {
+  const clauses: SQL[] = [eq(mortgageCases.phase, phase)];
+
+  const search = filters?.search?.trim();
+  if (search) {
+    clauses.push(ilike(mortgageCases.customerName, `%${search}%`));
+  }
+
+  if (filters?.advisorId) {
+    clauses.push(eq(mortgageCases.advisorId, filters.advisorId));
+  }
+
+  if (filters?.lenderId) {
+    clauses.push(eq(mortgageCases.lenderId, filters.lenderId));
+  }
+
+  const deadline = filters?.deadline as MortgageDeadlineFilter | null | undefined;
+  if (deadline === "passing_14" || deadline === "conditions_14") {
+    const today = todayIsoAmsterdam();
+    const until = addDaysIso(today, 14);
+    const dateColumn =
+      deadline === "passing_14"
+        ? mortgageCases.passingDate
+        : mortgageCases.financingConditionDate;
+    clauses.push(gte(dateColumn, today));
+    clauses.push(lte(dateColumn, until));
+  }
+
+  return and(...clauses)!;
+}
+
 /** Fetch mortgage cases for a phase with advisor/lender names (left joins). */
 export async function getMortgageCasesByPhase(
   phase: DbMortgagePhase,
+  filters?: Partial<MortgageListFilters>,
 ): Promise<MortgageCaseRow[]> {
   const db = getDb();
+  const sort = filters?.sort ?? "passing_date";
+  const direction = filters?.direction ?? "asc";
 
   return db
     .select({
@@ -71,8 +138,8 @@ export async function getMortgageCasesByPhase(
     .from(mortgageCases)
     .leftJoin(advisors, eq(mortgageCases.advisorId, advisors.id))
     .leftJoin(lenders, eq(mortgageCases.lenderId, lenders.id))
-    .where(eq(mortgageCases.phase, phase))
-    .orderBy(sql`${mortgageCases.passingDate} ASC NULLS LAST`);
+    .where(buildPhaseFilters(phase, filters))
+    .orderBy(buildOrderBy(sort, direction));
 }
 
 export async function getMortgageCaseById(
