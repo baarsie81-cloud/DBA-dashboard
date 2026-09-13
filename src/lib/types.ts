@@ -14,6 +14,7 @@ export type MortgageDossier = {
   applicationDate: string | null;
   conditionalDate: string | null;
   closingDate: string | null;
+  offerExpiryDate: string | null;
   phase: MortgagePhase;
 };
 
@@ -21,5 +22,5 @@ export type KpiItem = {
   id: string;
   value: string;
   label: string;
-  icon: "folder" | "euro" | "calendar" | "clock";
+  icon: "folder" | "euro" | "calendar" | "clock" | "alert";
 };

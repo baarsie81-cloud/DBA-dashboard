@@ -293,6 +293,20 @@ export function MortgageForm({
           </Field>
         </div>
 
+        <Field
+          label="Offerte vervaldatum"
+          htmlFor="offerExpiryDate"
+          error={state.fieldErrors?.offerExpiryDate}
+        >
+          <input
+            id="offerExpiryDate"
+            name="offerExpiryDate"
+            type="date"
+            defaultValue={dateForInput(initial?.offerExpiryDate)}
+            className={fieldClass}
+          />
+        </Field>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Bankgarantie / waarborgsom" htmlFor="bankGuarantee">
             <input
