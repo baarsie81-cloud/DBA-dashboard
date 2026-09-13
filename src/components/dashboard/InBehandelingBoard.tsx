@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { Suspense, useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { AdvisorOption } from "@/db/queries/advisors";
 import type { LenderOption } from "@/db/queries/lenders";
@@ -17,8 +17,11 @@ import { MortgageTable } from "./MortgageTable";
 
 type InBehandelingBoardProps = {
   dossiers: MortgageDossier[];
+  filterAdvisors: AdvisorOption[];
+  filterLenders: LenderOption[];
   activeAdvisors: AdvisorOption[];
   activeLenders: LenderOption[];
+  hasActiveFilters: boolean;
   defaultPhase?: DbMortgagePhase;
 };
 
@@ -32,10 +35,19 @@ type PanelState =
       initial: MortgageCaseDetail | null;
     };
 
+function FilterBarFallback() {
+  return (
+    <div className="h-[62px] animate-pulse rounded-xl border border-dba-border bg-dba-surface" />
+  );
+}
+
 export function InBehandelingBoard({
   dossiers,
+  filterAdvisors,
+  filterLenders,
   activeAdvisors,
   activeLenders,
+  hasActiveFilters,
   defaultPhase = "in_behandeling",
 }: InBehandelingBoardProps) {
   const router = useRouter();
@@ -98,7 +110,13 @@ export function InBehandelingBoard({
 
   return (
     <>
-      <FilterBar onAdd={openCreate} />
+      <Suspense fallback={<FilterBarFallback />}>
+        <FilterBar
+          advisors={filterAdvisors}
+          lenders={filterLenders}
+          onAdd={openCreate}
+        />
+      </Suspense>
 
       {phaseError ? (
         <p role="alert" className="text-[13px] text-red-700">
@@ -106,11 +124,18 @@ export function InBehandelingBoard({
         </p>
       ) : null}
 
-      <MortgageTable
-        dossiers={dossiers}
-        onEdit={openEdit}
-        onPhaseChange={handlePhaseChange}
-      />
+      <Suspense
+        fallback={
+          <div className="h-40 animate-pulse rounded-xl border border-dba-border bg-dba-surface" />
+        }
+      >
+        <MortgageTable
+          dossiers={dossiers}
+          hasActiveFilters={hasActiveFilters}
+          onEdit={openEdit}
+          onPhaseChange={handlePhaseChange}
+        />
+      </Suspense>
 
       <DossierPanel
         open={panel.open}

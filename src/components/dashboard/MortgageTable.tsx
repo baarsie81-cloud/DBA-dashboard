@@ -1,19 +1,71 @@
 "use client";
 
 import { useTransition } from "react";
-import { ArrowDownUp, MoreHorizontal } from "lucide-react";
-import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
-import type { MortgageDossier } from "@/lib/types";
-import { PHASE_OPTIONS } from "@/lib/mortgage-validation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ArrowDown, ArrowDownUp, ArrowUp, MoreHorizontal } from "lucide-react";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
+import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
+import {
+  buildMortgageListHref,
+  DEFAULT_DIRECTION,
+  DEFAULT_SORT,
+  parseMortgageListParams,
+  type MortgageSortField,
+} from "@/lib/mortgage-list-params";
+import { PHASE_OPTIONS } from "@/lib/mortgage-validation";
+import type { MortgageDossier } from "@/lib/types";
 
 type MortgageTableProps = {
   dossiers: MortgageDossier[];
+  hasActiveFilters?: boolean;
   onEdit?: (id: string) => void;
   onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
 };
 
 function SortableHeader({
+  label,
+  field,
+  align = "left",
+  activeSort,
+  activeDirection,
+  onSort,
+}: {
+  label: string;
+  field: MortgageSortField;
+  align?: "left" | "right";
+  activeSort: MortgageSortField;
+  activeDirection: "asc" | "desc";
+  onSort: (field: MortgageSortField) => void;
+}) {
+  const isActive = activeSort === field;
+  const Icon = !isActive ? ArrowDownUp : activeDirection === "asc" ? ArrowUp : ArrowDown;
+
+  return (
+    <th
+      className={`px-4 py-3 text-[11px] font-semibold tracking-wide text-dba-muted uppercase ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className={`inline-flex items-center gap-1.5 rounded-md transition-colors hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1 ${
+          align === "right" ? "justify-end" : ""
+        } ${isActive ? "text-dba-charcoal" : ""}`}
+        aria-label={`Sorteer op ${label}`}
+      >
+        {label}
+        <Icon
+          className={`h-3 w-3 ${isActive ? "text-dba-green" : "text-dba-border-strong"}`}
+          strokeWidth={1.75}
+          aria-hidden
+        />
+      </button>
+    </th>
+  );
+}
+
+function StaticHeader({
   label,
   align = "left",
 }: {
@@ -26,18 +78,7 @@ function SortableHeader({
         align === "right" ? "text-right" : "text-left"
       }`}
     >
-      <span
-        className={`inline-flex items-center gap-1.5 ${
-          align === "right" ? "justify-end" : ""
-        }`}
-      >
-        {label}
-        <ArrowDownUp
-          className="h-3 w-3 text-dba-border-strong"
-          strokeWidth={1.75}
-          aria-hidden
-        />
-      </span>
+      {label}
     </th>
   );
 }
@@ -91,10 +132,41 @@ function PhaseSelect({
 
 export function MortgageTable({
   dossiers,
+  hasActiveFilters = false,
   onEdit,
   onPhaseChange,
 }: MortgageTableProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
+  const filters = parseMortgageListParams(searchParams);
   const total = dossiers.length;
+
+  const handleSort = (field: MortgageSortField) => {
+    const nextDirection =
+      filters.sort === field
+        ? filters.direction === "asc"
+          ? "desc"
+          : "asc"
+        : DEFAULT_DIRECTION;
+
+    const href = buildMortgageListHref(pathname, searchParams, {
+      sort: field === DEFAULT_SORT && nextDirection === DEFAULT_DIRECTION ? null : field,
+      direction:
+        field === DEFAULT_SORT && nextDirection === DEFAULT_DIRECTION
+          ? null
+          : nextDirection,
+    });
+
+    startTransition(() => {
+      router.push(href);
+    });
+  };
+
+  const emptyMessage = hasActiveFilters
+    ? "Geen dossiers gevonden met deze filters."
+    : "Geen dossiers in behandeling.";
 
   return (
     <section className="overflow-hidden rounded-xl border border-dba-border bg-dba-surface shadow-[0_1px_2px_rgba(51,53,54,0.03)]">
@@ -102,14 +174,51 @@ export function MortgageTable({
         <table className="w-full min-w-[980px] border-collapse text-sm">
           <thead className="border-b border-dba-border bg-[#fafbfa]">
             <tr>
-              <SortableHeader label="Klantnaam" />
-              <SortableHeader label="Adviseur" />
-              <SortableHeader label="Geldverstrekker" />
-              <SortableHeader label="Hoofdsom" align="right" />
-              <SortableHeader label="Datum aanvraag" />
-              <SortableHeader label="Ontbindende v." />
-              <SortableHeader label="Passeerdatum" />
-              <SortableHeader label="Fase" />
+              <SortableHeader
+                label="Klantnaam"
+                field="customer_name"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Adviseur"
+                field="advisor"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Geldverstrekker"
+                field="lender"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Hoofdsom"
+                field="principal"
+                align="right"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
+              <StaticHeader label="Datum aanvraag" />
+              <SortableHeader
+                label="Ontbindende v."
+                field="financing_condition_date"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Passeerdatum"
+                field="passing_date"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
+              <StaticHeader label="Fase" />
               <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
                 Acties
               </th>
@@ -122,7 +231,7 @@ export function MortgageTable({
                   colSpan={9}
                   className="px-4 py-12 text-center text-sm text-dba-muted"
                 >
-                  Geen dossiers in behandeling.
+                  {emptyMessage}
                 </td>
               </tr>
             ) : (

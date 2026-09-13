@@ -1,6 +1,9 @@
 import type { MortgageCaseRow } from "@/db/queries/mortgage-cases";
-import type { KpiItem, MortgageDossier, MortgagePhase } from "@/lib/types";
+import { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
 import { formatCurrency } from "@/lib/format";
+import type { KpiItem, MortgageDossier, MortgagePhase } from "@/lib/types";
+
+export { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
 
 const PHASE_LABELS: Record<string, MortgagePhase> = {
   prospect: "Prospect",
@@ -21,22 +24,6 @@ function toIsoDate(value: string | Date | null | undefined): string | null {
   const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed.toISOString().slice(0, 10);
-}
-
-/** Today's date (YYYY-MM-DD) in Europe/Amsterdam. */
-export function todayIsoAmsterdam(): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Amsterdam",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
-
-export function addDaysIso(isoDate: string, days: number): string {
-  const date = new Date(`${isoDate}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
 }
 
 export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
