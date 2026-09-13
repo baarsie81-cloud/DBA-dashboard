@@ -1,6 +1,11 @@
 import { and, eq, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
-import { advisors, lenders, mortgageCases } from "@/db/schema";
+import {
+  advisors,
+  lenders,
+  mortgageCaseAdvisors,
+  mortgageCases,
+} from "@/db/schema";
 import type { OverviewFilters } from "@/lib/overview-params";
 
 export type OverviewKpis = {
@@ -45,12 +50,20 @@ function toNumber(value: string | number | null | undefined): number {
  * - afgehandeld → passing_date year
  * - other phases → application_date year
  * - null relevant date → excluded from a specific year, included in "all periods"
+ *
+ * Advisor filter uses EXISTS on mortgage_case_advisors so shared dossiers
+ * match without duplicating rows in organisation KPIs / lender stats.
  */
 function buildOverviewWhere(filters: OverviewFilters): SQL | undefined {
   const clauses: SQL[] = [];
 
   if (filters.advisorId) {
-    clauses.push(eq(mortgageCases.advisorId, filters.advisorId));
+    clauses.push(sql`EXISTS (
+      SELECT 1
+      FROM ${mortgageCaseAdvisors} mca
+      WHERE mca.mortgage_case_id = ${mortgageCases.id}
+        AND mca.advisor_id = ${filters.advisorId}
+    )`);
   }
 
   if (filters.lenderId) {
@@ -120,6 +133,7 @@ export async function getOverviewYears(): Promise<number[]> {
     .filter((year) => Number.isFinite(year));
 }
 
+/** Organisation KPIs: each mortgage case counted once (no double-count on shared advisors). */
 export async function getOverviewKpis(
   filters: OverviewFilters,
 ): Promise<OverviewKpis> {
@@ -145,6 +159,11 @@ export async function getOverviewKpis(
   };
 }
 
+/**
+ * Per-advisor stats via mortgage_case_advisors.
+ * A shared dossier counts fully for each linked advisor (no 50/50 split).
+ * Cases without advisors appear as "Geen adviseur".
+ */
 export async function getAdvisorStatistics(
   filters: OverviewFilters,
 ): Promise<AdvisorStatsRow[]> {
@@ -153,7 +172,7 @@ export async function getAdvisorStatistics(
 
   const rows = await db
     .select({
-      advisorId: mortgageCases.advisorId,
+      advisorId: mortgageCaseAdvisors.advisorId,
       advisorName: advisors.name,
       prospects: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'prospect' then 1 else 0 end), 0)`,
       inProgress: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'in_behandeling' then 1 else 0 end), 0)`,
@@ -164,9 +183,13 @@ export async function getAdvisorStatistics(
       principalTotal: sql<string>`coalesce(sum(${mortgageCases.principalAmount}::numeric), 0)`,
     })
     .from(mortgageCases)
-    .leftJoin(advisors, eq(mortgageCases.advisorId, advisors.id))
+    .leftJoin(
+      mortgageCaseAdvisors,
+      eq(mortgageCases.id, mortgageCaseAdvisors.mortgageCaseId),
+    )
+    .leftJoin(advisors, eq(mortgageCaseAdvisors.advisorId, advisors.id))
     .where(where)
-    .groupBy(mortgageCases.advisorId, advisors.name)
+    .groupBy(mortgageCaseAdvisors.advisorId, advisors.name)
     .orderBy(
       sql`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then 1 else 0 end), 0) DESC`,
       sql`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.principalAmount}::numeric else 0 end), 0) DESC`,
@@ -186,6 +209,7 @@ export async function getAdvisorStatistics(
   }));
 }
 
+/** Lender stats stay one row per case (organisation view, no advisor fan-out). */
 export async function getLenderStatistics(
   filters: OverviewFilters,
 ): Promise<LenderStatsRow[]> {

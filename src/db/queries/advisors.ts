@@ -1,4 +1,4 @@
-import { asc, eq, or, sql } from "drizzle-orm";
+import { asc, eq, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { advisors, type Advisor } from "@/db/schema";
 
@@ -13,11 +13,16 @@ export type AdvisorWriteInput = {
   active: boolean;
 };
 
-/** Active advisors, optionally including one selected (possibly inactive) advisor. */
+/** Active advisors, optionally including currently linked (possibly inactive) advisors. */
 export async function getAdvisorOptions(
-  includeId?: string | null,
+  includeIds?: string | string[] | null,
 ): Promise<AdvisorOption[]> {
   const db = getDb();
+  const ids = Array.isArray(includeIds)
+    ? includeIds.filter(Boolean)
+    : includeIds
+      ? [includeIds]
+      : [];
 
   const rows = await db
     .select({
@@ -27,8 +32,8 @@ export async function getAdvisorOptions(
     })
     .from(advisors)
     .where(
-      includeId
-        ? or(eq(advisors.active, true), eq(advisors.id, includeId))
+      ids.length > 0
+        ? or(eq(advisors.active, true), inArray(advisors.id, ids))
         : eq(advisors.active, true),
     )
     .orderBy(asc(advisors.name));

@@ -7,7 +7,12 @@ import type {
 } from "@/lib/mortgage-list-params";
 import { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
 import { getDb } from "@/db";
-import { advisors, lenders, mortgageCases } from "@/db/schema";
+import {
+  advisors,
+  lenders,
+  mortgageCaseAdvisors,
+  mortgageCases,
+} from "@/db/schema";
 import type { MortgageCase, MortgagePhase as DbMortgagePhase } from "@/db/schema";
 
 export type MortgageCaseRow = {
@@ -26,7 +31,7 @@ export type MortgageCaseRow = {
 export type MortgageCaseDetail = {
   id: string;
   customerName: string;
-  advisorId: string | null;
+  advisorIds: string[];
   mortgageType: string | null;
   applicationDate: string | Date | null;
   lenderId: string | null;
@@ -34,9 +39,10 @@ export type MortgageCaseDetail = {
   lastCheckDate: string | Date | null;
   financingConditionDate: string | Date | null;
   bankGuarantee: string | null;
+  guaranteeDate: string | Date | null;
   passingDate: string | Date | null;
   offerExpiryDate: string | Date | null;
-  mortgageConfirmation: string | null;
+  mortgageConfirmationDate: string | Date | null;
   fee: string | null;
   notes: string | null;
   phase: DbMortgagePhase;
@@ -44,7 +50,7 @@ export type MortgageCaseDetail = {
 
 export type MortgageCaseWriteInput = {
   customerName: string;
-  advisorId: string | null;
+  advisorIds: string[];
   mortgageType: string | null;
   applicationDate: string | null;
   lenderId: string | null;
@@ -52,13 +58,33 @@ export type MortgageCaseWriteInput = {
   lastCheckDate: string | null;
   financingConditionDate: string | null;
   bankGuarantee: string | null;
+  guaranteeDate: string | null;
   passingDate: string | null;
   offerExpiryDate: string | null;
-  mortgageConfirmation: string | null;
+  mortgageConfirmationDate: string | null;
   fee: string | null;
   notes: string | null;
   phase: DbMortgagePhase;
 };
+
+/** Aggregated advisor names, alphabetically joined with ", ". */
+const advisorNamesSql = sql<string | null>`(
+  SELECT string_agg(a.name, ', ' ORDER BY a.name)
+  FROM ${mortgageCaseAdvisors} mca
+  INNER JOIN ${advisors} a ON a.id = mca.advisor_id
+  WHERE mca.mortgage_case_id = ${mortgageCases.id}
+)`;
+
+/**
+ * First advisor name alphabetically among linked advisors.
+ * Used so advisor column sorting stays predictable with multiple advisors.
+ */
+const firstAdvisorNameSql = sql`(
+  SELECT MIN(a.name)
+  FROM ${mortgageCaseAdvisors} mca
+  INNER JOIN ${advisors} a ON a.id = mca.advisor_id
+  WHERE mca.mortgage_case_id = ${mortgageCases.id}
+)`;
 
 function buildOrderBy(
   sort: MortgageSortField,
@@ -70,7 +96,7 @@ function buildOrderBy(
     case "customer_name":
       return sql`${mortgageCases.customerName} ${sql.raw(dir)} NULLS LAST`;
     case "advisor":
-      return sql`${advisors.name} ${sql.raw(dir)} NULLS LAST`;
+      return sql`${firstAdvisorNameSql} ${sql.raw(dir)} NULLS LAST`;
     case "lender":
       return sql`${lenders.name} ${sql.raw(dir)} NULLS LAST`;
     case "principal":
@@ -97,7 +123,12 @@ function buildPhaseFilters(
   }
 
   if (filters?.advisorId) {
-    clauses.push(eq(mortgageCases.advisorId, filters.advisorId));
+    clauses.push(sql`EXISTS (
+      SELECT 1
+      FROM ${mortgageCaseAdvisors} mca
+      WHERE mca.mortgage_case_id = ${mortgageCases.id}
+        AND mca.advisor_id = ${filters.advisorId}
+    )`);
   }
 
   if (filters?.lenderId) {
@@ -108,7 +139,11 @@ function buildPhaseFilters(
   if (deadline) {
     const today = todayIsoAmsterdam();
 
-    if (deadline === "passing_14" || deadline === "conditions_14" || deadline === "offer_14") {
+    if (
+      deadline === "passing_14" ||
+      deadline === "conditions_14" ||
+      deadline === "offer_14"
+    ) {
       const until = addDaysIso(today, 14);
       const dateColumn =
         deadline === "passing_14"
@@ -126,7 +161,19 @@ function buildPhaseFilters(
   return and(...clauses)!;
 }
 
-/** Fetch mortgage cases for a phase with advisor/lender names (left joins). */
+async function getAdvisorIdsForCase(caseId: string): Promise<string[]> {
+  const db = getDb();
+  const rows = await db
+    .select({ advisorId: mortgageCaseAdvisors.advisorId })
+    .from(mortgageCaseAdvisors)
+    .innerJoin(advisors, eq(mortgageCaseAdvisors.advisorId, advisors.id))
+    .where(eq(mortgageCaseAdvisors.mortgageCaseId, caseId))
+    .orderBy(advisors.name);
+
+  return rows.map((row) => row.advisorId);
+}
+
+/** Fetch mortgage cases for a phase with aggregated advisor names (one row per case). */
 export async function getMortgageCasesByPhase(
   phase: DbMortgagePhase,
   filters?: Partial<MortgageListFilters>,
@@ -145,11 +192,10 @@ export async function getMortgageCasesByPhase(
       passingDate: mortgageCases.passingDate,
       offerExpiryDate: mortgageCases.offerExpiryDate,
       phase: mortgageCases.phase,
-      advisorName: advisors.name,
+      advisorName: advisorNamesSql,
       lenderName: lenders.name,
     })
     .from(mortgageCases)
-    .leftJoin(advisors, eq(mortgageCases.advisorId, advisors.id))
     .leftJoin(lenders, eq(mortgageCases.lenderId, lenders.id))
     .where(buildPhaseFilters(phase, filters))
     .orderBy(buildOrderBy(sort, direction));
@@ -163,7 +209,6 @@ export async function getMortgageCaseById(
     .select({
       id: mortgageCases.id,
       customerName: mortgageCases.customerName,
-      advisorId: mortgageCases.advisorId,
       mortgageType: mortgageCases.mortgageType,
       applicationDate: mortgageCases.applicationDate,
       lenderId: mortgageCases.lenderId,
@@ -171,9 +216,10 @@ export async function getMortgageCaseById(
       lastCheckDate: mortgageCases.lastCheckDate,
       financingConditionDate: mortgageCases.financingConditionDate,
       bankGuarantee: mortgageCases.bankGuarantee,
+      guaranteeDate: mortgageCases.guaranteeDate,
       passingDate: mortgageCases.passingDate,
       offerExpiryDate: mortgageCases.offerExpiryDate,
-      mortgageConfirmation: mortgageCases.mortgageConfirmation,
+      mortgageConfirmationDate: mortgageCases.mortgageConfirmationDate,
       fee: mortgageCases.fee,
       notes: mortgageCases.notes,
       phase: mortgageCases.phase,
@@ -182,36 +228,55 @@ export async function getMortgageCaseById(
     .where(eq(mortgageCases.id, id))
     .limit(1);
 
-  return rows[0] ?? null;
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    ...row,
+    advisorIds: await getAdvisorIdsForCase(id),
+  };
 }
 
 export async function createMortgageCase(
   input: MortgageCaseWriteInput,
 ): Promise<MortgageCase> {
   const db = getDb();
-  const [created] = await db
-    .insert(mortgageCases)
-    .values({
-      customerName: input.customerName,
-      advisorId: input.advisorId,
-      mortgageType: input.mortgageType,
-      applicationDate: input.applicationDate,
-      lenderId: input.lenderId,
-      principalAmount: input.principalAmount,
-      lastCheckDate: input.lastCheckDate,
-      financingConditionDate: input.financingConditionDate,
-      bankGuarantee: input.bankGuarantee,
-      passingDate: input.passingDate,
-      offerExpiryDate: input.offerExpiryDate,
-      mortgageConfirmation: input.mortgageConfirmation,
-      fee: input.fee,
-      notes: input.notes,
-      phase: input.phase,
-      updatedAt: new Date(),
-    })
-    .returning();
 
-  return created;
+  return db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(mortgageCases)
+      .values({
+        customerName: input.customerName,
+        mortgageType: input.mortgageType,
+        applicationDate: input.applicationDate,
+        lenderId: input.lenderId,
+        principalAmount: input.principalAmount,
+        lastCheckDate: input.lastCheckDate,
+        financingConditionDate: input.financingConditionDate,
+        bankGuarantee: input.bankGuarantee,
+        guaranteeDate: input.guaranteeDate,
+        passingDate: input.passingDate,
+        offerExpiryDate: input.offerExpiryDate,
+        mortgageConfirmationDate: input.mortgageConfirmationDate,
+        fee: input.fee,
+        notes: input.notes,
+        phase: input.phase,
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    const uniqueIds = Array.from(new Set(input.advisorIds.filter(Boolean)));
+    if (uniqueIds.length > 0) {
+      await tx.insert(mortgageCaseAdvisors).values(
+        uniqueIds.map((advisorId) => ({
+          mortgageCaseId: created.id,
+          advisorId,
+        })),
+      );
+    }
+
+    return created;
+  });
 }
 
 export async function updateMortgageCase(
@@ -219,30 +284,49 @@ export async function updateMortgageCase(
   input: MortgageCaseWriteInput,
 ): Promise<MortgageCase | null> {
   const db = getDb();
-  const [updated] = await db
-    .update(mortgageCases)
-    .set({
-      customerName: input.customerName,
-      advisorId: input.advisorId,
-      mortgageType: input.mortgageType,
-      applicationDate: input.applicationDate,
-      lenderId: input.lenderId,
-      principalAmount: input.principalAmount,
-      lastCheckDate: input.lastCheckDate,
-      financingConditionDate: input.financingConditionDate,
-      bankGuarantee: input.bankGuarantee,
-      passingDate: input.passingDate,
-      offerExpiryDate: input.offerExpiryDate,
-      mortgageConfirmation: input.mortgageConfirmation,
-      fee: input.fee,
-      notes: input.notes,
-      phase: input.phase,
-      updatedAt: new Date(),
-    })
-    .where(eq(mortgageCases.id, id))
-    .returning();
 
-  return updated ?? null;
+  return db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(mortgageCases)
+      .set({
+        customerName: input.customerName,
+        mortgageType: input.mortgageType,
+        applicationDate: input.applicationDate,
+        lenderId: input.lenderId,
+        principalAmount: input.principalAmount,
+        lastCheckDate: input.lastCheckDate,
+        financingConditionDate: input.financingConditionDate,
+        bankGuarantee: input.bankGuarantee,
+        guaranteeDate: input.guaranteeDate,
+        passingDate: input.passingDate,
+        offerExpiryDate: input.offerExpiryDate,
+        mortgageConfirmationDate: input.mortgageConfirmationDate,
+        fee: input.fee,
+        notes: input.notes,
+        phase: input.phase,
+        updatedAt: new Date(),
+      })
+      .where(eq(mortgageCases.id, id))
+      .returning();
+
+    if (!updated) return null;
+
+    await tx
+      .delete(mortgageCaseAdvisors)
+      .where(eq(mortgageCaseAdvisors.mortgageCaseId, id));
+
+    const uniqueIds = Array.from(new Set(input.advisorIds.filter(Boolean)));
+    if (uniqueIds.length > 0) {
+      await tx.insert(mortgageCaseAdvisors).values(
+        uniqueIds.map((advisorId) => ({
+          mortgageCaseId: id,
+          advisorId,
+        })),
+      );
+    }
+
+    return updated;
+  });
 }
 
 export async function updateMortgageCasePhase(

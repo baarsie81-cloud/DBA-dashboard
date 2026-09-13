@@ -98,7 +98,7 @@ export async function loadDossierFormAction(id: string) {
   if (!detail) return null;
 
   const [advisors, lenders] = await Promise.all([
-    getAdvisorOptions(detail.advisorId),
+    getAdvisorOptions(detail.advisorIds),
     getLenderOptions(detail.lenderId),
   ]);
 
