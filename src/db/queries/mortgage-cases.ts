@@ -44,6 +44,7 @@ export type MortgageCaseDetail = {
   offerExpiryDate: string | Date | null;
   mortgageConfirmationDate: string | Date | null;
   fee: string | null;
+  feeProcessingDate: string | Date | null;
   notes: string | null;
   phase: DbMortgagePhase;
 };
@@ -63,6 +64,7 @@ export type MortgageCaseWriteInput = {
   offerExpiryDate: string | null;
   mortgageConfirmationDate: string | null;
   fee: string | null;
+  feeProcessingDate: string | null;
   notes: string | null;
   phase: DbMortgagePhase;
 };
@@ -221,6 +223,7 @@ export async function getMortgageCaseById(
       offerExpiryDate: mortgageCases.offerExpiryDate,
       mortgageConfirmationDate: mortgageCases.mortgageConfirmationDate,
       fee: mortgageCases.fee,
+      feeProcessingDate: mortgageCases.feeProcessingDate,
       notes: mortgageCases.notes,
       phase: mortgageCases.phase,
     })
@@ -259,6 +262,7 @@ export async function createMortgageCase(
         offerExpiryDate: input.offerExpiryDate,
         mortgageConfirmationDate: input.mortgageConfirmationDate,
         fee: input.fee,
+        feeProcessingDate: input.feeProcessingDate,
         notes: input.notes,
         phase: input.phase,
         updatedAt: new Date(),
@@ -302,6 +306,7 @@ export async function updateMortgageCase(
         offerExpiryDate: input.offerExpiryDate,
         mortgageConfirmationDate: input.mortgageConfirmationDate,
         fee: input.fee,
+        feeProcessingDate: input.feeProcessingDate,
         notes: input.notes,
         phase: input.phase,
         updatedAt: new Date(),

@@ -242,6 +242,20 @@ export function MortgageForm({
               placeholder="2500"
             />
           </Field>
+
+          <Field
+            label="Verwerking vergoeding"
+            htmlFor="feeProcessingDate"
+            error={state.fieldErrors?.feeProcessingDate}
+          >
+            <input
+              id="feeProcessingDate"
+              name="feeProcessingDate"
+              type="date"
+              defaultValue={dateForInput(initial?.feeProcessingDate)}
+              className={fieldClass}
+            />
+          </Field>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
