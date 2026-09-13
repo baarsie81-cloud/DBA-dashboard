@@ -10,6 +10,10 @@ export const PHASE_OPTIONS: { value: DbMortgagePhase; label: string }[] = [
 
 const PHASE_VALUES = new Set(PHASE_OPTIONS.map((option) => option.value));
 
+export function isMortgagePhase(value: string): value is DbMortgagePhase {
+  return PHASE_VALUES.has(value as DbMortgagePhase);
+}
+
 export type ParsedMortgageForm =
   | { ok: true; data: MortgageCaseWriteInput }
   | { ok: false; error: string; fieldErrors?: Record<string, string> };

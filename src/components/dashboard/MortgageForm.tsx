@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import type { AdvisorOption } from "@/db/queries/advisors";
 import type { LenderOption } from "@/db/queries/lenders";
 import type { MortgageCaseDetail } from "@/db/queries/mortgage-cases";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 import {
   createMortgageCaseAction,
+  deleteMortgageCaseAction,
   updateMortgageCaseAction,
   type MortgageActionState,
 } from "@/lib/mortgage-actions";
@@ -70,6 +71,9 @@ export function MortgageForm({
     mode === "create" ? createMortgageCaseAction : updateMortgageCaseAction;
   const [state, formAction, pending] = useActionState(action, initialState);
   const handledSuccess = useRef(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   useEffect(() => {
     if (state.ok && !handledSuccess.current) {
@@ -83,8 +87,24 @@ export function MortgageForm({
 
   const phase = initial?.phase ?? defaultPhase;
 
+  function handleConfirmDelete() {
+    if (!initial?.id) return;
+    setDeleteError(null);
+    startDeleteTransition(async () => {
+      const result = await deleteMortgageCaseAction(initial.id);
+      if (!result.ok) {
+        setDeleteError(
+          result.error ?? "Verwijderen is niet gelukt. Probeer het opnieuw.",
+        );
+        return;
+      }
+      setConfirmDelete(false);
+      onSuccess();
+    });
+  }
+
   return (
-    <form action={formAction} className="flex h-full flex-col">
+    <form action={formAction} className="relative flex h-full flex-col">
       {mode === "edit" && initial ? (
         <input type="hidden" name="id" value={initial.id} />
       ) : null}
@@ -306,26 +326,92 @@ export function MortgageForm({
         </Field>
       </div>
 
-      <div className="flex items-center justify-end gap-3 border-t border-dba-border px-6 py-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="inline-flex h-10 items-center rounded-lg border border-dba-border bg-white px-4 text-sm font-medium text-dba-charcoal transition-colors hover:bg-dba-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-2"
-        >
-          Annuleren
-        </button>
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-10 items-center rounded-lg bg-dba-dark-green px-4 text-sm font-medium text-white transition-colors hover:bg-dba-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-dark-green focus-visible:ring-offset-2 disabled:opacity-60"
-        >
-          {pending
-            ? "Opslaan…"
-            : mode === "create"
-              ? "Dossier toevoegen"
-              : "Wijzigingen opslaan"}
-        </button>
+      <div className="border-t border-dba-border px-6 py-4">
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex h-10 items-center rounded-lg border border-dba-border bg-white px-4 text-sm font-medium text-dba-charcoal transition-colors hover:bg-dba-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-2"
+          >
+            Annuleren
+          </button>
+          <button
+            type="submit"
+            disabled={pending || isDeleting}
+            className="inline-flex h-10 items-center rounded-lg bg-dba-dark-green px-4 text-sm font-medium text-white transition-colors hover:bg-dba-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-dark-green focus-visible:ring-offset-2 disabled:opacity-60"
+          >
+            {pending
+              ? "Opslaan…"
+              : mode === "create"
+                ? "Dossier toevoegen"
+                : "Wijzigingen opslaan"}
+          </button>
+        </div>
+
+        {mode === "edit" && initial ? (
+          <div className="mt-4 border-t border-dba-border pt-4">
+            {deleteError ? (
+              <p role="alert" className="mb-2 text-[13px] text-red-700">
+                {deleteError}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteError(null);
+                setConfirmDelete(true);
+              }}
+              className="text-[13px] font-medium text-red-700/80 transition-colors hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+            >
+              Dossier verwijderen
+            </button>
+          </div>
+        ) : null}
       </div>
+
+      {confirmDelete ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-dba-charcoal/40 p-6">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-dossier-title"
+            aria-describedby="delete-dossier-desc"
+            className="w-full max-w-md rounded-xl border border-dba-border bg-dba-surface p-6 shadow-lg"
+          >
+            <h3
+              id="delete-dossier-title"
+              className="text-lg font-semibold text-dba-charcoal"
+            >
+              Dossier verwijderen?
+            </h3>
+            <p id="delete-dossier-desc" className="mt-2 text-sm text-dba-muted">
+              Weet je zeker dat je dit dossier wilt verwijderen? Deze actie kan
+              niet ongedaan worden gemaakt.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmDelete(false);
+                  setDeleteError(null);
+                }}
+                disabled={isDeleting}
+                className="inline-flex h-10 items-center rounded-lg border border-dba-border bg-white px-4 text-sm font-medium text-dba-charcoal transition-colors hover:bg-dba-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-2 disabled:opacity-60"
+              >
+                Annuleren
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="inline-flex h-10 items-center rounded-lg bg-red-700 px-4 text-sm font-medium text-white transition-colors hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-2 disabled:opacity-60"
+              >
+                {isDeleting ? "Verwijderen…" : "Definitief verwijderen"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </form>
   );
 }

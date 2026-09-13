@@ -1,12 +1,16 @@
 "use client";
 
+import { useTransition } from "react";
 import { ArrowDownUp, MoreHorizontal } from "lucide-react";
 import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
 import type { MortgageDossier } from "@/lib/types";
+import { PHASE_OPTIONS } from "@/lib/mortgage-validation";
+import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 
 type MortgageTableProps = {
   dossiers: MortgageDossier[];
   onEdit?: (id: string) => void;
+  onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
 };
 
 function SortableHeader({
@@ -38,7 +42,58 @@ function SortableHeader({
   );
 }
 
-export function MortgageTable({ dossiers, onEdit }: MortgageTableProps) {
+function phaseValueFromLabel(label: string): DbMortgagePhase {
+  return (
+    PHASE_OPTIONS.find((option) => option.label === label)?.value ??
+    "in_behandeling"
+  );
+}
+
+function PhaseSelect({
+  dossierId,
+  phaseLabel,
+  onPhaseChange,
+}: {
+  dossierId: string;
+  phaseLabel: string;
+  onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
+}) {
+  const [pending, startTransition] = useTransition();
+  const value = phaseValueFromLabel(phaseLabel);
+
+  return (
+    <select
+      key={`${dossierId}-${value}`}
+      aria-label="Fase"
+      disabled={pending || !onPhaseChange}
+      defaultValue={value}
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+      onChange={(event) => {
+        event.stopPropagation();
+        const next = event.target.value as DbMortgagePhase;
+        if (!onPhaseChange || next === value) return;
+        startTransition(async () => {
+          await onPhaseChange(dossierId, next);
+        });
+      }}
+      className="h-8 max-w-[150px] rounded-md border border-dba-border bg-dba-background px-2 text-[12px] font-medium text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1 disabled:opacity-60"
+    >
+      {PHASE_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+export function MortgageTable({
+  dossiers,
+  onEdit,
+  onPhaseChange,
+}: MortgageTableProps) {
   const total = dossiers.length;
 
   return (
@@ -114,9 +169,11 @@ export function MortgageTable({ dossiers, onEdit }: MortgageTableProps) {
                     {formatDateNl(dossier.closingDate)}
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    <span className="inline-flex rounded-full bg-dba-pill-bg px-2.5 py-1 text-[12px] font-medium text-dba-pill-text">
-                      {dossier.phase}
-                    </span>
+                    <PhaseSelect
+                      dossierId={dossier.id}
+                      phaseLabel={dossier.phase}
+                      onPhaseChange={onPhaseChange}
+                    />
                   </td>
                   <td className="px-4 py-3.5 text-right">
                     <button

@@ -161,3 +161,30 @@ export async function updateMortgageCase(
 
   return updated ?? null;
 }
+
+export async function updateMortgageCasePhase(
+  id: string,
+  phase: DbMortgagePhase,
+): Promise<MortgageCase | null> {
+  const db = getDb();
+  const [updated] = await db
+    .update(mortgageCases)
+    .set({
+      phase,
+      updatedAt: new Date(),
+    })
+    .where(eq(mortgageCases.id, id))
+    .returning();
+
+  return updated ?? null;
+}
+
+export async function deleteMortgageCase(id: string): Promise<boolean> {
+  const db = getDb();
+  const deleted = await db
+    .delete(mortgageCases)
+    .where(eq(mortgageCases.id, id))
+    .returning({ id: mortgageCases.id });
+
+  return deleted.length > 0;
+}

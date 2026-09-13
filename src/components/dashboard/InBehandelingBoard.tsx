@@ -7,7 +7,10 @@ import type { LenderOption } from "@/db/queries/lenders";
 import type { MortgageCaseDetail } from "@/db/queries/mortgage-cases";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 import type { MortgageDossier } from "@/lib/types";
-import { loadDossierFormAction } from "@/lib/mortgage-actions";
+import {
+  loadDossierFormAction,
+  updateMortgageCasePhaseAction,
+} from "@/lib/mortgage-actions";
 import { DossierPanel } from "./DossierPanel";
 import { FilterBar } from "./FilterBar";
 import { MortgageTable } from "./MortgageTable";
@@ -38,6 +41,13 @@ export function InBehandelingBoard({
   const router = useRouter();
   const [panel, setPanel] = useState<PanelState>({ open: false });
   const [, startTransition] = useTransition();
+  const [phaseError, setPhaseError] = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    startTransition(() => {
+      router.refresh();
+    });
+  }, [router]);
 
   const closePanel = useCallback(() => {
     setPanel({ open: false });
@@ -45,10 +55,8 @@ export function InBehandelingBoard({
 
   const handleSaved = useCallback(() => {
     setPanel({ open: false });
-    startTransition(() => {
-      router.refresh();
-    });
-  }, [router]);
+    refresh();
+  }, [refresh]);
 
   const openCreate = useCallback(() => {
     setPanel({
@@ -72,11 +80,37 @@ export function InBehandelingBoard({
     });
   }, []);
 
+  const handlePhaseChange = useCallback(
+    async (id: string, phase: DbMortgagePhase) => {
+      setPhaseError(null);
+      const result = await updateMortgageCasePhaseAction(id, phase);
+      if (!result.ok) {
+        setPhaseError(
+          result.error ?? "Fase wijzigen is niet gelukt. Probeer het opnieuw.",
+        );
+        refresh();
+        return;
+      }
+      refresh();
+    },
+    [refresh],
+  );
+
   return (
     <>
       <FilterBar onAdd={openCreate} />
 
-      <MortgageTable dossiers={dossiers} onEdit={openEdit} />
+      {phaseError ? (
+        <p role="alert" className="text-[13px] text-red-700">
+          {phaseError}
+        </p>
+      ) : null}
+
+      <MortgageTable
+        dossiers={dossiers}
+        onEdit={openEdit}
+        onPhaseChange={handlePhaseChange}
+      />
 
       <DossierPanel
         open={panel.open}
