@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowDownUp, ArrowUp, MoreHorizontal } from "lucide-react";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
+import { todayIsoAmsterdam } from "@/lib/dates";
 import {
   buildMortgageListHref,
   DEFAULT_DIRECTION,
@@ -21,6 +22,32 @@ type MortgageTableProps = {
   onEdit?: (id: string) => void;
   onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
 };
+
+function OfferExpiryCell({ value }: { value: string | null }) {
+  if (!value) {
+    return (
+      <span className="tabular-nums text-dba-charcoal">
+        {formatDateNl(value)}
+      </span>
+    );
+  }
+
+  const expired = value < todayIsoAmsterdam();
+  const formatted = formatDateNl(value);
+
+  if (!expired) {
+    return <span className="tabular-nums text-dba-charcoal">{formatted}</span>;
+  }
+
+  return (
+    <span className="inline-flex flex-col gap-0.5">
+      <span className="tabular-nums text-amber-800/90">{formatted}</span>
+      <span className="text-[11px] font-normal tracking-normal text-amber-700/80 normal-case">
+        Verlopen
+      </span>
+    </span>
+  );
+}
 
 function SortableHeader({
   label,
@@ -171,7 +198,7 @@ export function MortgageTable({
   return (
     <section className="overflow-hidden rounded-xl border border-dba-border bg-dba-surface shadow-[0_1px_2px_rgba(51,53,54,0.03)]">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[980px] border-collapse text-sm">
+        <table className="w-full min-w-[1100px] border-collapse text-sm">
           <thead className="border-b border-dba-border bg-[#fafbfa]">
             <tr>
               <SortableHeader
@@ -218,6 +245,13 @@ export function MortgageTable({
                 activeDirection={filters.direction}
                 onSort={handleSort}
               />
+              <SortableHeader
+                label="Offerte vervalt"
+                field="offer_expiry_date"
+                activeSort={filters.sort}
+                activeDirection={filters.direction}
+                onSort={handleSort}
+              />
               <StaticHeader label="Fase" />
               <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
                 Acties
@@ -228,7 +262,7 @@ export function MortgageTable({
             {total === 0 ? (
               <tr>
                 <td
-                  colSpan={9}
+                  colSpan={10}
                   className="px-4 py-12 text-center text-sm text-dba-muted"
                 >
                   {emptyMessage}
@@ -276,6 +310,9 @@ export function MortgageTable({
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal">
                     {formatDateNl(dossier.closingDate)}
+                  </td>
+                  <td className="px-4 py-3.5 whitespace-nowrap">
+                    <OfferExpiryCell value={dossier.offerExpiryDate} />
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <PhaseSelect

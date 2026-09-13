@@ -99,6 +99,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     "lastCheckDate",
     "financingConditionDate",
     "passingDate",
+    "offerExpiryDate",
   ] as const;
 
   const dates: Record<(typeof dateFields)[number], string | null> = {
@@ -106,6 +107,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     lastCheckDate: null,
     financingConditionDate: null,
     passingDate: null,
+    offerExpiryDate: null,
   };
 
   for (const field of dateFields) {
@@ -133,6 +135,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       financingConditionDate: dates.financingConditionDate,
       bankGuarantee: emptyToNull(formData.get("bankGuarantee")),
       passingDate: dates.passingDate,
+      offerExpiryDate: dates.offerExpiryDate,
       mortgageConfirmation: emptyToNull(formData.get("mortgageConfirmation")),
       fee: fee.value,
       notes: emptyToNull(formData.get("notes")),

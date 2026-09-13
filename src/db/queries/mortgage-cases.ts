@@ -1,4 +1,4 @@
-import { and, eq, gte, ilike, lte, sql, type SQL } from "drizzle-orm";
+import { and, eq, gte, ilike, lt, lte, sql, type SQL } from "drizzle-orm";
 import type {
   MortgageDeadlineFilter,
   MortgageListFilters,
@@ -17,6 +17,7 @@ export type MortgageCaseRow = {
   applicationDate: string | Date | null;
   financingConditionDate: string | Date | null;
   passingDate: string | Date | null;
+  offerExpiryDate: string | Date | null;
   phase: DbMortgagePhase;
   advisorName: string | null;
   lenderName: string | null;
@@ -34,6 +35,7 @@ export type MortgageCaseDetail = {
   financingConditionDate: string | Date | null;
   bankGuarantee: string | null;
   passingDate: string | Date | null;
+  offerExpiryDate: string | Date | null;
   mortgageConfirmation: string | null;
   fee: string | null;
   notes: string | null;
@@ -51,6 +53,7 @@ export type MortgageCaseWriteInput = {
   financingConditionDate: string | null;
   bankGuarantee: string | null;
   passingDate: string | null;
+  offerExpiryDate: string | null;
   mortgageConfirmation: string | null;
   fee: string | null;
   notes: string | null;
@@ -74,6 +77,8 @@ function buildOrderBy(
       return sql`${mortgageCases.principalAmount} ${sql.raw(dir)} NULLS LAST`;
     case "financing_condition_date":
       return sql`${mortgageCases.financingConditionDate} ${sql.raw(dir)} NULLS LAST`;
+    case "offer_expiry_date":
+      return sql`${mortgageCases.offerExpiryDate} ${sql.raw(dir)} NULLS LAST`;
     case "passing_date":
     default:
       return sql`${mortgageCases.passingDate} ${sql.raw(dir)} NULLS LAST`;
@@ -100,15 +105,22 @@ function buildPhaseFilters(
   }
 
   const deadline = filters?.deadline as MortgageDeadlineFilter | null | undefined;
-  if (deadline === "passing_14" || deadline === "conditions_14") {
+  if (deadline) {
     const today = todayIsoAmsterdam();
-    const until = addDaysIso(today, 14);
-    const dateColumn =
-      deadline === "passing_14"
-        ? mortgageCases.passingDate
-        : mortgageCases.financingConditionDate;
-    clauses.push(gte(dateColumn, today));
-    clauses.push(lte(dateColumn, until));
+
+    if (deadline === "passing_14" || deadline === "conditions_14" || deadline === "offer_14") {
+      const until = addDaysIso(today, 14);
+      const dateColumn =
+        deadline === "passing_14"
+          ? mortgageCases.passingDate
+          : deadline === "conditions_14"
+            ? mortgageCases.financingConditionDate
+            : mortgageCases.offerExpiryDate;
+      clauses.push(gte(dateColumn, today));
+      clauses.push(lte(dateColumn, until));
+    } else if (deadline === "offer_expired") {
+      clauses.push(lt(mortgageCases.offerExpiryDate, today));
+    }
   }
 
   return and(...clauses)!;
@@ -131,6 +143,7 @@ export async function getMortgageCasesByPhase(
       applicationDate: mortgageCases.applicationDate,
       financingConditionDate: mortgageCases.financingConditionDate,
       passingDate: mortgageCases.passingDate,
+      offerExpiryDate: mortgageCases.offerExpiryDate,
       phase: mortgageCases.phase,
       advisorName: advisors.name,
       lenderName: lenders.name,
@@ -159,6 +172,7 @@ export async function getMortgageCaseById(
       financingConditionDate: mortgageCases.financingConditionDate,
       bankGuarantee: mortgageCases.bankGuarantee,
       passingDate: mortgageCases.passingDate,
+      offerExpiryDate: mortgageCases.offerExpiryDate,
       mortgageConfirmation: mortgageCases.mortgageConfirmation,
       fee: mortgageCases.fee,
       notes: mortgageCases.notes,
@@ -188,6 +202,7 @@ export async function createMortgageCase(
       financingConditionDate: input.financingConditionDate,
       bankGuarantee: input.bankGuarantee,
       passingDate: input.passingDate,
+      offerExpiryDate: input.offerExpiryDate,
       mortgageConfirmation: input.mortgageConfirmation,
       fee: input.fee,
       notes: input.notes,
@@ -217,6 +232,7 @@ export async function updateMortgageCase(
       financingConditionDate: input.financingConditionDate,
       bankGuarantee: input.bankGuarantee,
       passingDate: input.passingDate,
+      offerExpiryDate: input.offerExpiryDate,
       mortgageConfirmation: input.mortgageConfirmation,
       fee: input.fee,
       notes: input.notes,

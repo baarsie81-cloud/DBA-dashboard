@@ -1,4 +1,10 @@
-import { CalendarDays, Clock3, FolderOpen, Landmark } from "lucide-react";
+import {
+  CalendarDays,
+  Clock3,
+  FolderOpen,
+  Landmark,
+  FileWarning,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { KpiItem } from "@/lib/types";
 
@@ -7,6 +13,7 @@ const iconMap: Record<KpiItem["icon"], LucideIcon> = {
   euro: Landmark,
   calendar: CalendarDays,
   clock: Clock3,
+  alert: FileWarning,
 };
 
 type KpiCardProps = {
@@ -41,7 +48,7 @@ type KpiGridProps = {
 
 export function KpiGrid({ items }: KpiGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {items.map((item) => (
         <KpiCard key={item.id} item={item} />
       ))}

@@ -41,6 +41,7 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
     applicationDate: toIsoDate(row.applicationDate),
     conditionalDate: toIsoDate(row.financingConditionDate),
     closingDate: toIsoDate(row.passingDate),
+    offerExpiryDate: toIsoDate(row.offerExpiryDate),
     phase: PHASE_LABELS[row.phase] ?? "In behandeling",
   };
 }
@@ -72,6 +73,10 @@ export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
     isWithinInclusiveRange(dossier.conditionalDate, today, until),
   ).length;
 
+  const offerSoon = dossiers.filter((dossier) =>
+    isWithinInclusiveRange(dossier.offerExpiryDate, today, until),
+  ).length;
+
   return [
     {
       id: "kpi-dossiers",
@@ -96,6 +101,12 @@ export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
       value: String(financingSoon),
       label: "Ontbindende voorwaarden komende 14 dagen",
       icon: "clock",
+    },
+    {
+      id: "kpi-offer",
+      value: String(offerSoon),
+      label: "Offerte verloopt ≤14 dagen",
+      icon: "alert",
     },
   ];
 }

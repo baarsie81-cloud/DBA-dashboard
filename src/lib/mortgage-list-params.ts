@@ -1,4 +1,8 @@
-export type MortgageDeadlineFilter = "passing_14" | "conditions_14";
+export type MortgageDeadlineFilter =
+  | "passing_14"
+  | "conditions_14"
+  | "offer_14"
+  | "offer_expired";
 
 export type MortgageSortField =
   | "customer_name"
@@ -6,7 +10,8 @@ export type MortgageSortField =
   | "lender"
   | "principal"
   | "passing_date"
-  | "financing_condition_date";
+  | "financing_condition_date"
+  | "offer_expiry_date";
 
 export type MortgageSortDirection = "asc" | "desc";
 
@@ -26,11 +31,14 @@ const SORT_FIELDS = new Set<MortgageSortField>([
   "principal",
   "passing_date",
   "financing_condition_date",
+  "offer_expiry_date",
 ]);
 
 const DEADLINES = new Set<MortgageDeadlineFilter>([
   "passing_14",
   "conditions_14",
+  "offer_14",
+  "offer_expired",
 ]);
 
 export const DEFAULT_SORT: MortgageSortField = "passing_date";

@@ -126,6 +126,8 @@ export function FilterBar({ advisors, lenders, onAdd }: FilterBarProps) {
         <option value="conditions_14">
           Ontbindende voorwaarden komende 14 dagen
         </option>
+        <option value="offer_14">Offerte verloopt komende 14 dagen</option>
+        <option value="offer_expired">Offerte verlopen</option>
       </select>
 
       {showClear ? (

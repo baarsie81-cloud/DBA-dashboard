@@ -51,6 +51,7 @@ export const mortgageCases = pgTable(
     financingConditionDate: date("financing_condition_date"),
     bankGuarantee: text("bank_guarantee"),
     passingDate: date("passing_date"),
+    offerExpiryDate: date("offer_expiry_date"),
     mortgageConfirmation: text("mortgage_confirmation"),
     fee: numeric("fee", { precision: 12, scale: 2 }),
     notes: text("notes"),
@@ -66,6 +67,7 @@ export const mortgageCases = pgTable(
     index("mortgage_cases_financing_condition_date_idx").on(
       table.financingConditionDate,
     ),
+    index("mortgage_cases_offer_expiry_date_idx").on(table.offerExpiryDate),
     index("mortgage_cases_application_date_idx").on(table.applicationDate),
   ],
 );
