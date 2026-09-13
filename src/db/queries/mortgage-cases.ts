@@ -1,4 +1,4 @@
-import { and, eq, gte, ilike, lt, lte, sql, type SQL } from "drizzle-orm";
+import { and, eq, gte, ilike, isNull, lt, lte, sql, type SQL } from "drizzle-orm";
 import type {
   MortgageDeadlineFilter,
   MortgageListFilters,
@@ -23,6 +23,7 @@ export type MortgageCaseRow = {
   financingConditionDate: string | Date | null;
   passingDate: string | Date | null;
   offerExpiryDate: string | Date | null;
+  feeProcessingDate: string | Date | null;
   phase: DbMortgagePhase;
   advisorName: string | null;
   lenderName: string | null;
@@ -103,10 +104,14 @@ function buildOrderBy(
       return sql`${lenders.name} ${sql.raw(dir)} NULLS LAST`;
     case "principal":
       return sql`${mortgageCases.principalAmount} ${sql.raw(dir)} NULLS LAST`;
+    case "application_date":
+      return sql`${mortgageCases.applicationDate} ${sql.raw(dir)} NULLS LAST`;
     case "financing_condition_date":
       return sql`${mortgageCases.financingConditionDate} ${sql.raw(dir)} NULLS LAST`;
     case "offer_expiry_date":
       return sql`${mortgageCases.offerExpiryDate} ${sql.raw(dir)} NULLS LAST`;
+    case "fee_processing_date":
+      return sql`${mortgageCases.feeProcessingDate} ${sql.raw(dir)} NULLS LAST`;
     case "passing_date":
     default:
       return sql`${mortgageCases.passingDate} ${sql.raw(dir)} NULLS LAST`;
@@ -160,6 +165,10 @@ function buildPhaseFilters(
     }
   }
 
+  if (filters?.feeUnprocessed) {
+    clauses.push(isNull(mortgageCases.feeProcessingDate));
+  }
+
   return and(...clauses)!;
 }
 
@@ -193,6 +202,7 @@ export async function getMortgageCasesByPhase(
       financingConditionDate: mortgageCases.financingConditionDate,
       passingDate: mortgageCases.passingDate,
       offerExpiryDate: mortgageCases.offerExpiryDate,
+      feeProcessingDate: mortgageCases.feeProcessingDate,
       phase: mortgageCases.phase,
       advisorName: advisorNamesSql,
       lenderName: lenders.name,

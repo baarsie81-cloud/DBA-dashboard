@@ -27,15 +27,20 @@ type NavItem = {
 };
 
 const primaryNav: NavItem[] = [
-  { href: "/prospects", label: "Prospects", icon: UserRound },
+  { href: "/prospects", label: "Prospects", icon: UserRound, enabled: true },
   {
     href: "/in-behandeling",
     label: "In behandeling",
     icon: ClipboardList,
     enabled: true,
   },
-  { href: "/geannuleerd", label: "Geannuleerd", icon: XCircle },
-  { href: "/afgehandeld", label: "Afgehandeld", icon: CheckCircle2 },
+  { href: "/geannuleerd", label: "Geannuleerd", icon: XCircle, enabled: true },
+  {
+    href: "/afgehandeld",
+    label: "Afgehandeld",
+    icon: CheckCircle2,
+    enabled: true,
+  },
   {
     href: "/overzicht",
     label: "Overzicht",

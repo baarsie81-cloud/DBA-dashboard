@@ -16,7 +16,7 @@ import { DossierPanel } from "./DossierPanel";
 import { FilterBar } from "./FilterBar";
 import { MortgageTable } from "./MortgageTable";
 
-type InBehandelingBoardProps = {
+type MortgagePhaseBoardProps = {
   dossiers: MortgageDossier[];
   columnOrder: MortgageColumnKey[];
   filterAdvisors: AdvisorOption[];
@@ -24,7 +24,10 @@ type InBehandelingBoardProps = {
   activeAdvisors: AdvisorOption[];
   activeLenders: LenderOption[];
   hasActiveFilters: boolean;
+  emptyState: string;
   defaultPhase?: DbMortgagePhase;
+  showDeadlineFilters?: boolean;
+  showFeeUnprocessedFilter?: boolean;
 };
 
 type PanelState =
@@ -43,7 +46,7 @@ function FilterBarFallback() {
   );
 }
 
-export function InBehandelingBoard({
+export function MortgagePhaseBoard({
   dossiers,
   columnOrder,
   filterAdvisors,
@@ -51,8 +54,11 @@ export function InBehandelingBoard({
   activeAdvisors,
   activeLenders,
   hasActiveFilters,
+  emptyState,
   defaultPhase = "in_behandeling",
-}: InBehandelingBoardProps) {
+  showDeadlineFilters = true,
+  showFeeUnprocessedFilter = false,
+}: MortgagePhaseBoardProps) {
   const router = useRouter();
   const [panel, setPanel] = useState<PanelState>({ open: false });
   const [, startTransition] = useTransition();
@@ -118,6 +124,8 @@ export function InBehandelingBoard({
           advisors={filterAdvisors}
           lenders={filterLenders}
           onAdd={openCreate}
+          showDeadlineFilters={showDeadlineFilters}
+          showFeeUnprocessedFilter={showFeeUnprocessedFilter}
         />
       </Suspense>
 
@@ -137,6 +145,7 @@ export function InBehandelingBoard({
           dossiers={dossiers}
           columnOrder={columnOrder}
           hasActiveFilters={hasActiveFilters}
+          emptyState={emptyState}
           onEdit={openEdit}
           onPhaseChange={handlePhaseChange}
         />

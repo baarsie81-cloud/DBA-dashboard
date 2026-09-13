@@ -9,6 +9,7 @@ export const MORTGAGE_COLUMN_KEYS = [
   "financing_condition_date",
   "passing_date",
   "offer_expiry_date",
+  "fee_processing_date",
   "phase",
 ] as const;
 
@@ -31,6 +32,7 @@ const LEGACY_KEY_MAP: Record<string, MortgageColumnKey> = {
   financingConditionDate: "financing_condition_date",
   passingDate: "passing_date",
   offerExpiryDate: "offer_expiry_date",
+  feeProcessingDate: "fee_processing_date",
 };
 
 export type MortgageColumnMeta = {
@@ -68,6 +70,7 @@ export const MORTGAGE_COLUMN_META: Record<
   application_date: {
     key: "application_date",
     label: "Datum aanvraag",
+    sortField: "application_date",
   },
   financing_condition_date: {
     key: "financing_condition_date",
@@ -83,6 +86,11 @@ export const MORTGAGE_COLUMN_META: Record<
     key: "offer_expiry_date",
     label: "Offerte vervalt",
     sortField: "offer_expiry_date",
+  },
+  fee_processing_date: {
+    key: "fee_processing_date",
+    label: "Verwerking vergoeding",
+    sortField: "fee_processing_date",
   },
   phase: {
     key: "phase",

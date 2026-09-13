@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { MORTGAGE_VIEW_PATHS } from "@/lib/mortgage-phase-config";
 import { getAdvisorOptions } from "@/db/queries/advisors";
 import {
   getMortgageColumnOrder,
@@ -25,6 +26,12 @@ import {
   parseMortgageFormData,
 } from "@/lib/mortgage-validation";
 
+function revalidateMortgageViews() {
+  for (const path of MORTGAGE_VIEW_PATHS) {
+    revalidatePath(path);
+  }
+}
+
 export type MortgageActionState = {
   ok: boolean;
   error?: string;
@@ -46,7 +53,7 @@ export async function createMortgageCaseAction(
 
   try {
     await createMortgageCase(parsed.data);
-    revalidatePath("/in-behandeling");
+    revalidateMortgageViews();
     return { ok: true };
   } catch {
     return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -81,7 +88,7 @@ export async function updateMortgageCaseAction(
     if (!updated) {
       return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };
     }
-    revalidatePath("/in-behandeling");
+    revalidateMortgageViews();
     return { ok: true };
   } catch {
     return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -123,7 +130,7 @@ export async function deleteMortgageCaseAction(
         error: "Verwijderen is niet gelukt. Probeer het opnieuw.",
       };
     }
-    revalidatePath("/in-behandeling");
+    revalidateMortgageViews();
     return { ok: true };
   } catch {
     return {
@@ -152,7 +159,7 @@ export async function updateMortgageCasePhaseAction(
         error: "Fase wijzigen is niet gelukt. Probeer het opnieuw.",
       };
     }
-    revalidatePath("/in-behandeling");
+    revalidateMortgageViews();
     return { ok: true };
   } catch {
     return {
@@ -175,7 +182,7 @@ export async function saveMortgageColumnOrderAction(
 
   try {
     await saveMortgageColumnOrder(normalized);
-    revalidatePath("/in-behandeling");
+    revalidateMortgageViews();
     return { ok: true, order: normalized };
   } catch {
     return {
@@ -189,7 +196,7 @@ export async function resetMortgageColumnOrderAction(): Promise<ColumnOrderActio
   try {
     const order = [...DEFAULT_MORTGAGE_COLUMN_ORDER];
     await saveMortgageColumnOrder(order);
-    revalidatePath("/in-behandeling");
+    revalidateMortgageViews();
     return { ok: true, order };
   } catch {
     return {

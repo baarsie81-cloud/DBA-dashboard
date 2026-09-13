@@ -1,40 +1,64 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, X } from "lucide-react";
 import type { AdvisorOption } from "@/db/queries/advisors";
 import type { LenderOption } from "@/db/queries/lenders";
 import {
   buildMortgageListHref,
+  DEFAULT_LIST_PARAM_DEFAULTS,
   hasActiveMortgageFilters,
   parseMortgageListParams,
 } from "@/lib/mortgage-list-params";
+import { getMortgagePhasePageConfig } from "@/lib/mortgage-phase-config";
 
 type FilterBarProps = {
   advisors: AdvisorOption[];
   lenders: LenderOption[];
   onAdd?: () => void;
+  showDeadlineFilters?: boolean;
+  showFeeUnprocessedFilter?: boolean;
 };
 
-export function FilterBar({ advisors, lenders, onAdd }: FilterBarProps) {
+export function FilterBar({
+  advisors,
+  lenders,
+  onAdd,
+  showDeadlineFilters = true,
+  showFeeUnprocessedFilter = false,
+}: FilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
-  const filters = parseMortgageListParams(searchParams);
+  const listDefaults = useMemo(() => {
+    const config = getMortgagePhasePageConfig(pathname);
+    return config
+      ? {
+          sort: config.defaultSort,
+          direction: config.defaultDirection,
+        }
+      : DEFAULT_LIST_PARAM_DEFAULTS;
+  }, [pathname]);
+  const filters = parseMortgageListParams(searchParams, listDefaults);
 
   const draftRef = useRef(filters.search);
   const [debounceToken, setDebounceToken] = useState(0);
 
   const pushParams = useCallback(
     (patch: Record<string, string | null | undefined>) => {
-      const href = buildMortgageListHref(pathname, searchParams, patch);
+      const href = buildMortgageListHref(
+        pathname,
+        searchParams,
+        patch,
+        listDefaults,
+      );
       startTransition(() => {
         router.push(href);
       });
     },
-    [pathname, router, searchParams],
+    [listDefaults, pathname, router, searchParams],
   );
 
   useEffect(() => {
@@ -53,6 +77,7 @@ export function FilterBar({ advisors, lenders, onAdd }: FilterBarProps) {
       advisor: null,
       lender: null,
       deadline: null,
+      fee_unprocessed: null,
     });
   };
 
@@ -113,22 +138,40 @@ export function FilterBar({ advisors, lenders, onAdd }: FilterBarProps) {
         ))}
       </select>
 
-      <select
-        value={filters.deadline ?? ""}
-        onChange={(event) =>
-          pushParams({ deadline: event.target.value || null })
-        }
-        className="h-10 min-w-[180px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
-        aria-label="Filter op datum"
-      >
-        <option value="">Alle datums</option>
-        <option value="passing_14">Passeerdatum komende 14 dagen</option>
-        <option value="conditions_14">
-          Ontbindende voorwaarden komende 14 dagen
-        </option>
-        <option value="offer_14">Offerte verloopt komende 14 dagen</option>
-        <option value="offer_expired">Offerte verlopen</option>
-      </select>
+      {showDeadlineFilters ? (
+        <select
+          value={filters.deadline ?? ""}
+          onChange={(event) =>
+            pushParams({ deadline: event.target.value || null })
+          }
+          className="h-10 min-w-[180px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
+          aria-label="Filter op datum"
+        >
+          <option value="">Alle datums</option>
+          <option value="passing_14">Passeerdatum komende 14 dagen</option>
+          <option value="conditions_14">
+            Ontbindende voorwaarden komende 14 dagen
+          </option>
+          <option value="offer_14">Offerte verloopt komende 14 dagen</option>
+          <option value="offer_expired">Offerte verlopen</option>
+        </select>
+      ) : null}
+
+      {showFeeUnprocessedFilter ? (
+        <label className="inline-flex h-10 items-center gap-2 rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal">
+          <input
+            type="checkbox"
+            checked={filters.feeUnprocessed}
+            onChange={(event) =>
+              pushParams({
+                fee_unprocessed: event.target.checked ? "1" : null,
+              })
+            }
+            className="h-4 w-4 rounded border-dba-border text-dba-green focus-visible:ring-dba-green"
+          />
+          Vergoeding nog niet verwerkt
+        </label>
+      ) : null}
 
       {showClear ? (
         <button

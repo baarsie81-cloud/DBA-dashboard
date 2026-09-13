@@ -15,6 +15,7 @@ export type MortgageDossier = {
   conditionalDate: string | null;
   closingDate: string | null;
   offerExpiryDate: string | null;
+  feeProcessingDate: string | null;
   phase: MortgagePhase;
 };
 
