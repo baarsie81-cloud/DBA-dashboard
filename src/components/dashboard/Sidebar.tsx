@@ -35,7 +35,12 @@ const primaryNav: NavItem[] = [
   },
   { href: "/geannuleerd", label: "Geannuleerd", icon: XCircle },
   { href: "/afgehandeld", label: "Afgehandeld", icon: CheckCircle2 },
-  { href: "/overzicht", label: "Overzicht", icon: LayoutDashboard },
+  {
+    href: "/overzicht",
+    label: "Overzicht",
+    icon: LayoutDashboard,
+    enabled: true,
+  },
 ];
 
 const adminNav: NavItem[] = [
