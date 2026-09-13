@@ -78,8 +78,16 @@ export const FORMAT_ERROR_MESSAGE =
 /**
  * Explicit Excel advisor label → canonical advisor name.
  * No fuzzy matching — aliases plus exact case-insensitive DB names only.
+ *
+ * Fixed DBA Excel advisor codes:
+ * DD → Django, RB → René, WL → Wim, BB → Bert
  */
 export const ADVISOR_ALIASES: Record<string, string> = {
+  dd: "Django",
+  rb: "René",
+  wl: "Wim",
+  bb: "Bert",
+  // Existing longer aliases remain supported.
   "rene de boer": "René de Boer",
   "rené de boer": "René de Boer",
   rdb: "René de Boer",

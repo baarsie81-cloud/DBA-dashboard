@@ -15,6 +15,8 @@ const EMPTY_TOKENS = new Set([
   "na",
   "geen",
   "leeg",
+  // "Nog niet bekend" — used for principal_amount in real DBA Excel files.
+  "nnb",
 ]);
 
 export function collapseWhitespace(value: string): string {
