@@ -20,10 +20,20 @@ function buildTestWorkbook(): ArrayBuffer {
     "In behandeling", null, null, "2450", null, null,
   ];
 
+  const preamble = [
+    ["DBA Hypotheekoverzicht"],
+    ["Legenda"],
+    [],
+    [],
+    [],
+  ];
+
   const wb = XLSX.utils.book_new();
   for (const sheetName of DBA_SHEETS) {
     const aoa =
-      sheetName === "In behandeling" ? [headers, rowA, rowB] : [headers];
+      sheetName === "In behandeling"
+        ? [...preamble, headers, rowA, rowB]
+        : [...preamble, headers];
     const sheet = XLSX.utils.aoa_to_sheet(aoa);
     XLSX.utils.book_append_sheet(wb, sheet, sheetName);
   }

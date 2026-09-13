@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import type { MortgagePhase } from "@/db/schema";
 import {
   DBA_COLUMNS,
+  DBA_HEADER_ROW_NUMBER,
   DBA_SHEETS,
   FORMAT_ERROR_MESSAGE,
   REQUIRED_COLUMNS,
@@ -112,22 +113,35 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
 
   for (const sheetName of DBA_SHEETS) {
     const sheet = workbook.Sheets[sheetName];
+    const sheetRef = sheet["!ref"];
+    if (!sheetRef) {
+      return { ok: false, message: FORMAT_ERROR_MESSAGE };
+    }
+
+    const range = XLSX.utils.decode_range(sheetRef);
+    const headerRowIndex0 = DBA_HEADER_ROW_NUMBER - 1;
+    if (range.e.r < headerRowIndex0) {
+      return { ok: false, message: FORMAT_ERROR_MESSAGE };
+    }
+
+    // Keep blank rows so matrix indexes stay aligned with Excel row numbers.
     const matrix = XLSX.utils.sheet_to_json<(string | number | Date | null)[]>(
       sheet,
       {
         header: 1,
         raw: true,
         defval: null,
-        blankrows: false,
+        blankrows: true,
       },
     );
 
-    // Header-only sheets are valid (no dossiers on that phase).
-    if (matrix.length < 1) {
+    // sheet_to_json starts at range.s.r; map absolute Excel row 6 into the matrix.
+    const headerMatrixIndex = headerRowIndex0 - range.s.r;
+    if (headerMatrixIndex < 0 || headerMatrixIndex >= matrix.length) {
       return { ok: false, message: FORMAT_ERROR_MESSAGE };
     }
 
-    const headers = headerIndexMap(matrix[0] ?? []);
+    const headers = headerIndexMap(matrix[headerMatrixIndex] ?? []);
     if (REQUIRED_COLUMNS.some((column) => !headers.has(column))) {
       return { ok: false, message: FORMAT_ERROR_MESSAGE };
     }
@@ -135,8 +149,9 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
     const hasOfferExpiry = headers.has(DBA_COLUMNS.offerExpiryDate);
     const phase = SHEET_TO_PHASE[sheetName];
 
-    for (let i = 1; i < matrix.length; i += 1) {
-      const excelRowNumber = i + 1;
+    // Header-only sheets (row 6 headers, no data rows) are valid.
+    for (let i = headerMatrixIndex + 1; i < matrix.length; i += 1) {
+      const excelRowNumber = range.s.r + i + 1;
       const row = matrix[i] ?? [];
       if (isRowEmpty(row)) continue;
 
