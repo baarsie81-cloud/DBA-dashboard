@@ -1,9 +1,12 @@
+"use client";
+
 import { ArrowDownUp, MoreHorizontal } from "lucide-react";
 import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
 import type { MortgageDossier } from "@/lib/types";
 
 type MortgageTableProps = {
   dossiers: MortgageDossier[];
+  onEdit?: (id: string) => void;
 };
 
 function SortableHeader({
@@ -35,7 +38,7 @@ function SortableHeader({
   );
 }
 
-export function MortgageTable({ dossiers }: MortgageTableProps) {
+export function MortgageTable({ dossiers, onEdit }: MortgageTableProps) {
   const total = dossiers.length;
 
   return (
@@ -71,7 +74,23 @@ export function MortgageTable({ dossiers }: MortgageTableProps) {
               dossiers.map((dossier) => (
                 <tr
                   key={dossier.id}
-                  className="border-b border-dba-border last:border-b-0 hover:bg-[#fbfcfb]"
+                  tabIndex={onEdit ? 0 : undefined}
+                  onClick={onEdit ? () => onEdit(dossier.id) : undefined}
+                  onKeyDown={
+                    onEdit
+                      ? (event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onEdit(dossier.id);
+                          }
+                        }
+                      : undefined
+                  }
+                  className={`border-b border-dba-border last:border-b-0 hover:bg-[#fbfcfb] ${
+                    onEdit
+                      ? "cursor-pointer focus-visible:bg-[#f5f7f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dba-green"
+                      : ""
+                  }`}
                 >
                   <td className="px-4 py-3.5 font-medium whitespace-nowrap text-dba-charcoal">
                     {dossier.clientName}
@@ -102,10 +121,15 @@ export function MortgageTable({ dossiers }: MortgageTableProps) {
                   <td className="px-4 py-3.5 text-right">
                     <button
                       type="button"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
-                      aria-label={`Acties voor ${dossier.clientName}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onEdit?.(dossier.id);
+                      }}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
+                      aria-label={`Bewerken: ${dossier.clientName}`}
                     >
                       <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} />
+                      <span className="sr-only sm:not-sr-only">Bewerken</span>
                     </button>
                   </td>
                 </tr>
