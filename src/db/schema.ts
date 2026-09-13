@@ -5,6 +5,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -38,9 +39,6 @@ export const mortgageCases = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     customerName: text("customer_name").notNull(),
-    advisorId: uuid("advisor_id").references(() => advisors.id, {
-      onDelete: "restrict",
-    }),
     mortgageType: text("mortgage_type"),
     applicationDate: date("application_date"),
     lenderId: uuid("lender_id").references(() => lenders.id, {
@@ -50,9 +48,10 @@ export const mortgageCases = pgTable(
     lastCheckDate: date("last_check_date"),
     financingConditionDate: date("financing_condition_date"),
     bankGuarantee: text("bank_guarantee"),
+    guaranteeDate: date("guarantee_date"),
     passingDate: date("passing_date"),
     offerExpiryDate: date("offer_expiry_date"),
-    mortgageConfirmation: text("mortgage_confirmation"),
+    mortgageConfirmationDate: date("mortgage_confirmation_date"),
     fee: numeric("fee", { precision: 12, scale: 2 }),
     notes: text("notes"),
     phase: mortgagePhaseEnum("phase").notNull().default("prospect"),
@@ -61,7 +60,6 @@ export const mortgageCases = pgTable(
   },
   (table) => [
     index("mortgage_cases_phase_idx").on(table.phase),
-    index("mortgage_cases_advisor_id_idx").on(table.advisorId),
     index("mortgage_cases_lender_id_idx").on(table.lenderId),
     index("mortgage_cases_passing_date_idx").on(table.passingDate),
     index("mortgage_cases_financing_condition_date_idx").on(
@@ -69,6 +67,33 @@ export const mortgageCases = pgTable(
     ),
     index("mortgage_cases_offer_expiry_date_idx").on(table.offerExpiryDate),
     index("mortgage_cases_application_date_idx").on(table.applicationDate),
+    index("mortgage_cases_guarantee_date_idx").on(table.guaranteeDate),
+    index("mortgage_cases_mortgage_confirmation_date_idx").on(
+      table.mortgageConfirmationDate,
+    ),
+  ],
+);
+
+/** Many-to-many: one mortgage case can have multiple advisors. */
+export const mortgageCaseAdvisors = pgTable(
+  "mortgage_case_advisors",
+  {
+    mortgageCaseId: uuid("mortgage_case_id")
+      .notNull()
+      .references(() => mortgageCases.id, { onDelete: "cascade" }),
+    advisorId: uuid("advisor_id")
+      .notNull()
+      .references(() => advisors.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.mortgageCaseId, table.advisorId],
+      name: "mortgage_case_advisors_pk",
+    }),
+    index("mortgage_case_advisors_advisor_id_idx").on(table.advisorId),
   ],
 );
 
@@ -82,5 +107,6 @@ export const dashboardSettings = pgTable("dashboard_settings", {
 export type Advisor = typeof advisors.$inferSelect;
 export type Lender = typeof lenders.$inferSelect;
 export type MortgageCase = typeof mortgageCases.$inferSelect;
+export type MortgageCaseAdvisor = typeof mortgageCaseAdvisors.$inferSelect;
 export type DashboardSetting = typeof dashboardSettings.$inferSelect;
 export type MortgagePhase = (typeof mortgagePhaseEnum.enumValues)[number];

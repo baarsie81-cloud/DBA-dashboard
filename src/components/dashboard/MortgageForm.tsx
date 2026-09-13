@@ -135,41 +135,52 @@ export function MortgageForm({
           />
         </Field>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Adviseur" htmlFor="advisorId">
-            <select
-              id="advisorId"
-              name="advisorId"
-              defaultValue={initial?.advisorId ?? ""}
-              className={fieldClass}
-            >
-              <option value="">—</option>
-              {advisors.map((advisor) => (
-                <option key={advisor.id} value={advisor.id}>
-                  {advisor.name}
-                  {!advisor.active ? " (inactief)" : ""}
-                </option>
-              ))}
-            </select>
-          </Field>
+        <Field label="Adviseurs" htmlFor="advisorIds">
+          <div
+            id="advisorIds"
+            className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-dba-border bg-dba-background px-3 py-2.5"
+          >
+            {advisors.length === 0 ? (
+              <p className="text-[13px] text-dba-muted">Geen adviseurs beschikbaar.</p>
+            ) : (
+              advisors.map((advisor) => (
+                <label
+                  key={advisor.id}
+                  className="flex cursor-pointer items-center gap-2 text-sm text-dba-charcoal"
+                >
+                  <input
+                    type="checkbox"
+                    name="advisorIds"
+                    value={advisor.id}
+                    defaultChecked={initial?.advisorIds?.includes(advisor.id) ?? false}
+                    className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green"
+                  />
+                  <span>
+                    {advisor.name}
+                    {!advisor.active ? " (inactief)" : ""}
+                  </span>
+                </label>
+              ))
+            )}
+          </div>
+        </Field>
 
-          <Field label="Geldverstrekker" htmlFor="lenderId">
-            <select
-              id="lenderId"
-              name="lenderId"
-              defaultValue={initial?.lenderId ?? ""}
-              className={fieldClass}
-            >
-              <option value="">—</option>
-              {lenders.map((lender) => (
-                <option key={lender.id} value={lender.id}>
-                  {lender.name}
-                  {!lender.active ? " (inactief)" : ""}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+        <Field label="Geldverstrekker" htmlFor="lenderId">
+          <select
+            id="lenderId"
+            name="lenderId"
+            defaultValue={initial?.lenderId ?? ""}
+            className={fieldClass}
+          >
+            <option value="">—</option>
+            {lenders.map((lender) => (
+              <option key={lender.id} value={lender.id}>
+                {lender.name}
+                {!lender.active ? " (inactief)" : ""}
+              </option>
+            ))}
+          </select>
+        </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Soort hypotheek" htmlFor="mortgageType">
@@ -318,16 +329,34 @@ export function MortgageForm({
             />
           </Field>
 
-          <Field label="Bevestiging hypotheek" htmlFor="mortgageConfirmation">
+          <Field
+            label="Datum bankgarantie / waarborgsom"
+            htmlFor="guaranteeDate"
+            error={state.fieldErrors?.guaranteeDate}
+          >
             <input
-              id="mortgageConfirmation"
-              name="mortgageConfirmation"
-              type="text"
-              defaultValue={initial?.mortgageConfirmation ?? ""}
+              id="guaranteeDate"
+              name="guaranteeDate"
+              type="date"
+              defaultValue={dateForInput(initial?.guaranteeDate)}
               className={fieldClass}
             />
           </Field>
         </div>
+
+        <Field
+          label="Datum bevestiging hypotheek"
+          htmlFor="mortgageConfirmationDate"
+          error={state.fieldErrors?.mortgageConfirmationDate}
+        >
+          <input
+            id="mortgageConfirmationDate"
+            name="mortgageConfirmationDate"
+            type="date"
+            defaultValue={dateForInput(initial?.mortgageConfirmationDate)}
+            className={fieldClass}
+          />
+        </Field>
 
         <Field label="Opmerkingen" htmlFor="notes">
           <textarea
