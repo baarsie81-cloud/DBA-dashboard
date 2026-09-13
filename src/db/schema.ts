@@ -2,12 +2,14 @@ import {
   boolean,
   date,
   index,
+  integer,
   numeric,
   pgEnum,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -55,6 +57,8 @@ export const mortgageCases = pgTable(
     fee: numeric("fee", { precision: 12, scale: 2 }),
     feeProcessingDate: date("fee_processing_date"),
     notes: text("notes"),
+    /** Deterministic key for DBA Excel re-import; null for manually created cases. */
+    legacyImportKey: text("legacy_import_key"),
     phase: mortgagePhaseEnum("phase").notNull().default("prospect"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -73,6 +77,7 @@ export const mortgageCases = pgTable(
       table.mortgageConfirmationDate,
     ),
     index("mortgage_cases_fee_processing_date_idx").on(table.feeProcessingDate),
+    uniqueIndex("mortgage_cases_legacy_import_key_uidx").on(table.legacyImportKey),
   ],
 );
 
@@ -106,9 +111,23 @@ export const dashboardSettings = pgTable("dashboard_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+
+/** Lightweight log of executed Excel imports. */
+export const excelImports = pgTable("excel_imports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  filename: text("filename").notNull(),
+  importedAt: timestamp("imported_at", { withTimezone: true }).notNull().defaultNow(),
+  totalRows: integer("total_rows").notNull(),
+  newCount: integer("new_count").notNull(),
+  updatedCount: integer("updated_count").notNull(),
+  unchangedCount: integer("unchanged_count").notNull(),
+  errorCount: integer("error_count").notNull(),
+});
+
 export type Advisor = typeof advisors.$inferSelect;
 export type Lender = typeof lenders.$inferSelect;
 export type MortgageCase = typeof mortgageCases.$inferSelect;
 export type MortgageCaseAdvisor = typeof mortgageCaseAdvisors.$inferSelect;
 export type DashboardSetting = typeof dashboardSettings.$inferSelect;
+export type ExcelImport = typeof excelImports.$inferSelect;
 export type MortgagePhase = (typeof mortgagePhaseEnum.enumValues)[number];

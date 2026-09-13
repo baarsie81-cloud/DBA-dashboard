@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  FileSpreadsheet,
   CheckCircle2,
   ClipboardList,
   LayoutDashboard,
@@ -46,6 +47,12 @@ const primaryNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { href: "/adviseurs", label: "Adviseurs", icon: Users, enabled: true },
   { href: "/geldverstrekkers", label: "Geldverstrekkers", icon: Building2, enabled: true },
+  {
+    href: "/import",
+    label: "Excel-import",
+    icon: FileSpreadsheet,
+    enabled: true,
+  },
   { href: "/instellingen", label: "Instellingen", icon: Settings },
 ];
 
