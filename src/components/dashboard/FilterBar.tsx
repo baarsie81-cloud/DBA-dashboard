@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { mockAdvisors, mockLenders } from "@/lib/mock-data";
 
-export function FilterBar() {
+type FilterBarProps = {
+  onAdd?: () => void;
+};
+
+export function FilterBar({ onAdd }: FilterBarProps) {
   const [query, setQuery] = useState("");
   const [advisor, setAdvisor] = useState("");
   const [lender, setLender] = useState("");
@@ -69,6 +73,7 @@ export function FilterBar() {
 
       <button
         type="button"
+        onClick={onAdd}
         className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-lg bg-dba-dark-green px-4 text-sm font-medium text-white transition-colors hover:bg-dba-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-dark-green focus-visible:ring-offset-2"
       >
         <Plus className="h-4 w-4" strokeWidth={2} />

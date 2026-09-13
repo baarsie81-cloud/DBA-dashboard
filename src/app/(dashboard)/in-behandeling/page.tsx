@@ -1,7 +1,8 @@
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { FilterBar } from "@/components/dashboard/FilterBar";
+import { InBehandelingBoard } from "@/components/dashboard/InBehandelingBoard";
 import { KpiGrid } from "@/components/dashboard/KpiCard";
-import { MortgageTable } from "@/components/dashboard/MortgageTable";
+import { getActiveAdvisors } from "@/db/queries/advisors";
+import { getActiveLenders } from "@/db/queries/lenders";
 import { getMortgageCasesByPhase } from "@/db/queries/mortgage-cases";
 import {
   buildInBehandelingKpis,
@@ -9,7 +10,11 @@ import {
 } from "@/lib/mortgage-cases";
 
 export default async function InBehandelingPage() {
-  const rows = await getMortgageCasesByPhase("in_behandeling");
+  const [rows, activeAdvisors, activeLenders] = await Promise.all([
+    getMortgageCasesByPhase("in_behandeling"),
+    getActiveAdvisors(),
+    getActiveLenders(),
+  ]);
   const dossiers = rows.map(mapCaseToDossier);
   const kpis = buildInBehandelingKpis(dossiers);
 
@@ -22,9 +27,12 @@ export default async function InBehandelingPage() {
 
       <KpiGrid items={kpis} />
 
-      <FilterBar />
-
-      <MortgageTable dossiers={dossiers} />
+      <InBehandelingBoard
+        dossiers={dossiers}
+        activeAdvisors={activeAdvisors}
+        activeLenders={activeLenders}
+        defaultPhase="in_behandeling"
+      />
     </div>
   );
 }
