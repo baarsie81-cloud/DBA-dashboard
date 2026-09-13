@@ -316,6 +316,7 @@ export async function buildImportPreview(
   for (const row of parsedRows) {
     const warnings = [...row.warnings];
 
+    // Technical conflict only: same sheet + same Excel row twice in one parse.
     if ((keyCounts.get(row.legacyImportKey) ?? 0) > 1) {
       plans.push({
         status: "error",
@@ -323,7 +324,7 @@ export async function buildImportPreview(
         excelRowNumber: row.excelRowNumber,
         customerName: row.customerName,
         legacyImportKey: row.legacyImportKey,
-        reason: "Dubbele dossieridentiteit in Excel.",
+        reason: "Dubbele bronpositie in Excel (zelfde tabblad + rijnummer).",
         warnings,
       });
       continue;

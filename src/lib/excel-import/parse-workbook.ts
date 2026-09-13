@@ -270,11 +270,8 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
         excelRowNumber,
         phase,
         legacyImportKey: buildLegacyImportKey({
-          lastName,
-          initials,
-          infix,
-          applicationDate,
-          mortgageType,
+          sheetName,
+          excelRowNumber,
         }),
         customerName,
         lastName,

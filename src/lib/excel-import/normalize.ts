@@ -57,29 +57,15 @@ export function buildCustomerName(
 }
 
 /**
- * Deterministic re-import identity.
- * Primary: achternaam|voorletters|tussenvoegsels|application_date
- * Fallback without application_date: append |nodate|mortgage_type
- * Phase is excluded so sheet moves update the same dossier.
+ * Stable re-import identity for the fixed DBA Excel format.
+ * Source position is the source of truth: sheet name + Excel row number.
+ * Each Excel row remains its own dossier, even when customer names match.
  */
 export function buildLegacyImportKey(input: {
-  lastName: string;
-  initials: string | null;
-  infix: string | null;
-  applicationDate: string | null;
-  mortgageType: string | null;
+  sheetName: string;
+  excelRowNumber: number;
 }): string {
-  const base = [
-    normalizeLookupKey(input.lastName),
-    normalizeLookupKey(input.initials ?? ""),
-    normalizeLookupKey(input.infix ?? ""),
-  ].join("|");
-
-  if (input.applicationDate) {
-    return `v1|${base}|${input.applicationDate}`;
-  }
-
-  return `v1|${base}|nodate|${normalizeLookupKey(input.mortgageType ?? "")}`;
+  return `v2|${input.sheetName}|${input.excelRowNumber}`;
 }
 
 export function splitAdvisorLabels(raw: string): string[] {
