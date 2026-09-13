@@ -53,6 +53,7 @@ export const mortgageCases = pgTable(
     offerExpiryDate: date("offer_expiry_date"),
     mortgageConfirmationDate: date("mortgage_confirmation_date"),
     fee: numeric("fee", { precision: 12, scale: 2 }),
+    feeProcessingDate: date("fee_processing_date"),
     notes: text("notes"),
     phase: mortgagePhaseEnum("phase").notNull().default("prospect"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -71,6 +72,7 @@ export const mortgageCases = pgTable(
     index("mortgage_cases_mortgage_confirmation_date_idx").on(
       table.mortgageConfirmationDate,
     ),
+    index("mortgage_cases_fee_processing_date_idx").on(table.feeProcessingDate),
   ],
 );
 

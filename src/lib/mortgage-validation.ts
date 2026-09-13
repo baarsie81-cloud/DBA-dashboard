@@ -102,6 +102,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     "offerExpiryDate",
     "guaranteeDate",
     "mortgageConfirmationDate",
+    "feeProcessingDate",
   ] as const;
 
   const dates: Record<(typeof dateFields)[number], string | null> = {
@@ -112,6 +113,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     offerExpiryDate: null,
     guaranteeDate: null,
     mortgageConfirmationDate: null,
+    feeProcessingDate: null,
   };
 
   for (const field of dateFields) {
@@ -148,6 +150,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       offerExpiryDate: dates.offerExpiryDate,
       mortgageConfirmationDate: dates.mortgageConfirmationDate,
       fee: fee.value,
+      feeProcessingDate: dates.feeProcessingDate,
       notes: emptyToNull(formData.get("notes")),
       phase: phaseRaw as DbMortgagePhase,
     },
