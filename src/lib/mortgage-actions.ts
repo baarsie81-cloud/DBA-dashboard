@@ -5,10 +5,16 @@ import { getAdvisorOptions } from "@/db/queries/advisors";
 import { getLenderOptions } from "@/db/queries/lenders";
 import {
   createMortgageCase,
+  deleteMortgageCase,
   getMortgageCaseById,
   updateMortgageCase,
+  updateMortgageCasePhase,
 } from "@/db/queries/mortgage-cases";
-import { parseMortgageFormData } from "@/lib/mortgage-validation";
+import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
+import {
+  isMortgagePhase,
+  parseMortgageFormData,
+} from "@/lib/mortgage-validation";
 
 export type MortgageActionState = {
   ok: boolean;
@@ -88,4 +94,61 @@ export async function loadDossierFormAction(id: string) {
   ]);
 
   return { detail, advisors, lenders };
+}
+
+export async function deleteMortgageCaseAction(
+  id: string,
+): Promise<MortgageActionState> {
+  if (!id.trim()) {
+    return {
+      ok: false,
+      error: "Verwijderen is niet gelukt. Probeer het opnieuw.",
+    };
+  }
+
+  try {
+    const deleted = await deleteMortgageCase(id);
+    if (!deleted) {
+      return {
+        ok: false,
+        error: "Verwijderen is niet gelukt. Probeer het opnieuw.",
+      };
+    }
+    revalidatePath("/in-behandeling");
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      error: "Verwijderen is niet gelukt. Probeer het opnieuw.",
+    };
+  }
+}
+
+export async function updateMortgageCasePhaseAction(
+  id: string,
+  phase: string,
+): Promise<MortgageActionState> {
+  if (!id.trim() || !isMortgagePhase(phase)) {
+    return { ok: false, error: "Fase wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  try {
+    const updated = await updateMortgageCasePhase(
+      id,
+      phase as DbMortgagePhase,
+    );
+    if (!updated) {
+      return {
+        ok: false,
+        error: "Fase wijzigen is niet gelukt. Probeer het opnieuw.",
+      };
+    }
+    revalidatePath("/in-behandeling");
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      error: "Fase wijzigen is niet gelukt. Probeer het opnieuw.",
+    };
+  }
 }
