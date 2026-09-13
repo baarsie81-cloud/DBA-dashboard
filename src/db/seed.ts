@@ -212,15 +212,16 @@ async function seed() {
 
   await db.insert(dashboardSettings).values([
     {
-      key: "column_order",
+      key: "mortgage_table_column_order",
       value: JSON.stringify([
         "customer_name",
-        "advisor_id",
-        "lender_id",
+        "advisor",
+        "lender",
         "principal_amount",
         "application_date",
         "financing_condition_date",
         "passing_date",
+        "offer_expiry_date",
         "phase",
       ]),
     },

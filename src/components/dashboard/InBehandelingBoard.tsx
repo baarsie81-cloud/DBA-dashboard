@@ -6,6 +6,7 @@ import type { AdvisorOption } from "@/db/queries/advisors";
 import type { LenderOption } from "@/db/queries/lenders";
 import type { MortgageCaseDetail } from "@/db/queries/mortgage-cases";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
+import type { MortgageColumnKey } from "@/lib/mortgage-column-order";
 import type { MortgageDossier } from "@/lib/types";
 import {
   loadDossierFormAction,
@@ -17,6 +18,7 @@ import { MortgageTable } from "./MortgageTable";
 
 type InBehandelingBoardProps = {
   dossiers: MortgageDossier[];
+  columnOrder: MortgageColumnKey[];
   filterAdvisors: AdvisorOption[];
   filterLenders: LenderOption[];
   activeAdvisors: AdvisorOption[];
@@ -43,6 +45,7 @@ function FilterBarFallback() {
 
 export function InBehandelingBoard({
   dossiers,
+  columnOrder,
   filterAdvisors,
   filterLenders,
   activeAdvisors,
@@ -130,7 +133,9 @@ export function InBehandelingBoard({
         }
       >
         <MortgageTable
+          key={columnOrder.join("|")}
           dossiers={dossiers}
+          columnOrder={columnOrder}
           hasActiveFilters={hasActiveFilters}
           onEdit={openEdit}
           onPhaseChange={handlePhaseChange}

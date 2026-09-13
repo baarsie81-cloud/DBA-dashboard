@@ -3,6 +3,7 @@ import { InBehandelingBoard } from "@/components/dashboard/InBehandelingBoard";
 import { KpiGrid } from "@/components/dashboard/KpiCard";
 import { getActiveAdvisors, listAdvisors } from "@/db/queries/advisors";
 import { getActiveLenders, listLenders } from "@/db/queries/lenders";
+import { getMortgageColumnOrder } from "@/db/queries/dashboard-settings";
 import { getMortgageCasesByPhase } from "@/db/queries/mortgage-cases";
 import {
   buildInBehandelingKpis,
@@ -22,7 +23,7 @@ export default async function InBehandelingPage({ searchParams }: PageProps) {
   const filters = parseMortgageListParams(params);
   const activeFilters = hasActiveMortgageFilters(filters);
 
-  const [kpiRows, tableRows, filterAdvisors, filterLenders, activeAdvisors, activeLenders] =
+  const [kpiRows, tableRows, filterAdvisors, filterLenders, activeAdvisors, activeLenders, columnOrder] =
     await Promise.all([
       getMortgageCasesByPhase("in_behandeling"),
       getMortgageCasesByPhase("in_behandeling", filters),
@@ -30,6 +31,7 @@ export default async function InBehandelingPage({ searchParams }: PageProps) {
       listLenders(),
       getActiveAdvisors(),
       getActiveLenders(),
+      getMortgageColumnOrder(),
     ]);
 
   const kpiDossiers = kpiRows.map(mapCaseToDossier);
@@ -47,6 +49,7 @@ export default async function InBehandelingPage({ searchParams }: PageProps) {
 
       <InBehandelingBoard
         dossiers={dossiers}
+        columnOrder={columnOrder}
         filterAdvisors={filterAdvisors}
         filterLenders={filterLenders}
         activeAdvisors={activeAdvisors}

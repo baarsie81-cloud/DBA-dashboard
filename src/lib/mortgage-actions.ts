@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdvisorOptions } from "@/db/queries/advisors";
+import {
+  getMortgageColumnOrder,
+  saveMortgageColumnOrder,
+} from "@/db/queries/dashboard-settings";
 import { getLenderOptions } from "@/db/queries/lenders";
 import {
   createMortgageCase,
@@ -11,6 +15,11 @@ import {
   updateMortgageCasePhase,
 } from "@/db/queries/mortgage-cases";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
+import {
+  DEFAULT_MORTGAGE_COLUMN_ORDER,
+  normalizeMortgageColumnOrder,
+  type MortgageColumnKey,
+} from "@/lib/mortgage-column-order";
 import {
   isMortgagePhase,
   parseMortgageFormData,
@@ -150,5 +159,50 @@ export async function updateMortgageCasePhaseAction(
       ok: false,
       error: "Fase wijzigen is niet gelukt. Probeer het opnieuw.",
     };
+  }
+}
+
+export type ColumnOrderActionResult = {
+  ok: boolean;
+  order?: MortgageColumnKey[];
+  error?: string;
+};
+
+export async function saveMortgageColumnOrderAction(
+  order: string[],
+): Promise<ColumnOrderActionResult> {
+  const normalized = normalizeMortgageColumnOrder(order);
+
+  try {
+    await saveMortgageColumnOrder(normalized);
+    revalidatePath("/in-behandeling");
+    return { ok: true, order: normalized };
+  } catch {
+    return {
+      ok: false,
+      error: "Kolomvolgorde opslaan is niet gelukt. Probeer het opnieuw.",
+    };
+  }
+}
+
+export async function resetMortgageColumnOrderAction(): Promise<ColumnOrderActionResult> {
+  try {
+    const order = [...DEFAULT_MORTGAGE_COLUMN_ORDER];
+    await saveMortgageColumnOrder(order);
+    revalidatePath("/in-behandeling");
+    return { ok: true, order };
+  } catch {
+    return {
+      ok: false,
+      error: "Standaardvolgorde herstellen is niet gelukt. Probeer het opnieuw.",
+    };
+  }
+}
+
+export async function loadMortgageColumnOrderAction(): Promise<MortgageColumnKey[]> {
+  try {
+    return await getMortgageColumnOrder();
+  } catch {
+    return [...DEFAULT_MORTGAGE_COLUMN_ORDER];
   }
 }
