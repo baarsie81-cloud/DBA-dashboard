@@ -66,6 +66,12 @@ export const REQUIRED_COLUMNS: string[] = [
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Real DBA workbooks place the column headers on Excel row 6.
+ * Rows 1–5 contain title/legend/spacer lines and must be ignored.
+ */
+export const DBA_HEADER_ROW_NUMBER = 6;
+
 export const FORMAT_ERROR_MESSAGE =
   "Dit bestand komt niet overeen met het vaste DBA hypotheekoverzicht.";
 
