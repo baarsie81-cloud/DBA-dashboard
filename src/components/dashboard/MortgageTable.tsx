@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
+import { formatFeeProcessingMonth } from "@/lib/fee-processing-month";
 import { todayIsoAmsterdam } from "@/lib/dates";
 import {
   DEFAULT_MORTGAGE_COLUMN_ORDER,
@@ -336,9 +337,9 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
         >
-          {formatDateNl(dossier.feeProcessingDate)}
+          {formatFeeProcessingMonth(dossier.feeProcessingDate)}
         </td>
       );
     case "phase":

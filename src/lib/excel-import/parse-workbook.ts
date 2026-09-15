@@ -22,6 +22,8 @@ import {
   cleanNamePart,
   combineExcelLastName,
 } from "@/lib/customer-name";
+import { normalizeBankGuaranteeFromExcel } from "@/lib/bank-guarantee-options";
+import { toMonthStartIso } from "@/lib/fee-processing-month";
 
 export type ParsedImportRow = {
   sheet: DbaSheetName;
@@ -278,6 +280,14 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
         ? dateFields.applicationDate.value
         : null;
 
+      const feeProcessingRaw = dateFields.feeProcessingDate.ok
+        ? dateFields.feeProcessingDate.value
+        : null;
+      const feeProcessingDate =
+        feeProcessingRaw != null
+          ? (toMonthStartIso(feeProcessingRaw) ?? feeProcessingRaw)
+          : null;
+
       rows.push({
         sheet: sheetName,
         excelRowNumber,
@@ -306,8 +316,8 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
         guaranteeDate: dateFields.guaranteeDate.ok
           ? dateFields.guaranteeDate.value
           : null,
-        bankGuarantee: emptyToNull(
-          cell(row, headers, DBA_COLUMNS.bankGuarantee),
+        bankGuarantee: normalizeBankGuaranteeFromExcel(
+          emptyToNull(cell(row, headers, DBA_COLUMNS.bankGuarantee)),
         ),
         passingDate: dateFields.passingDate.ok
           ? dateFields.passingDate.value
@@ -316,9 +326,7 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
           ? dateFields.mortgageConfirmationDate.value
           : null,
         fee: feeValue,
-        feeProcessingDate: dateFields.feeProcessingDate.ok
-          ? dateFields.feeProcessingDate.value
-          : null,
+        feeProcessingDate,
         offerExpiryDate: dateFields.offerExpiryDate.ok
           ? dateFields.offerExpiryDate.value
           : null,

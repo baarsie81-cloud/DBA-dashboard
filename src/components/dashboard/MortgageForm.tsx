@@ -18,6 +18,12 @@ import {
 } from "@/lib/mortgage-validation";
 import { resolveKlant1FormDefaults } from "@/lib/customer-name";
 import { DOSSIER_YEAR_OPTIONS } from "@/lib/dossier-year";
+import { bankGuaranteeSelectOptions } from "@/lib/bank-guarantee-options";
+import {
+  feeProcessingMonthSelectOptions,
+  feeProcessingMonthValue,
+} from "@/lib/fee-processing-month";
+import { mortgageTypeSelectOptions } from "@/lib/mortgage-type-options";
 
 type MortgageFormProps = {
   mode: "create" | "edit";
@@ -248,15 +254,26 @@ export function MortgageForm({
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Soort hypotheek" htmlFor="mortgageType">
-            <input
+          <Field
+            label="Soort hypotheek"
+            htmlFor="mortgageType"
+            error={state.fieldErrors?.mortgageType}
+          >
+            <select
               id="mortgageType"
               name="mortgageType"
-              type="text"
               defaultValue={initial?.mortgageType ?? ""}
               className={fieldClass}
-              placeholder="Bijv. Annuïteit"
-            />
+            >
+              <option value="">—</option>
+              {mortgageTypeSelectOptions(initial?.mortgageType).map(
+                (option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ),
+              )}
+            </select>
           </Field>
 
           <Field label="Fase" htmlFor="phase">
@@ -358,13 +375,21 @@ export function MortgageForm({
             htmlFor="feeProcessingDate"
             error={state.fieldErrors?.feeProcessingDate}
           >
-            <input
+            <select
               id="feeProcessingDate"
               name="feeProcessingDate"
-              type="date"
-              defaultValue={dateForInput(initial?.feeProcessingDate)}
+              defaultValue={feeProcessingMonthValue(initial?.feeProcessingDate)}
               className={fieldClass}
-            />
+            >
+              <option value="">—</option>
+              {feeProcessingMonthSelectOptions(initial?.feeProcessingDate).map(
+                (option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ),
+              )}
+            </select>
           </Field>
         </div>
 
@@ -443,14 +468,26 @@ export function MortgageForm({
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Bankgarantie / waarborgsom" htmlFor="bankGuarantee">
-            <input
+          <Field
+            label="BG / WBS"
+            htmlFor="bankGuarantee"
+            error={state.fieldErrors?.bankGuarantee}
+          >
+            <select
               id="bankGuarantee"
               name="bankGuarantee"
-              type="text"
               defaultValue={initial?.bankGuarantee ?? ""}
               className={fieldClass}
-            />
+            >
+              <option value="">—</option>
+              {bankGuaranteeSelectOptions(initial?.bankGuarantee).map(
+                (option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ),
+              )}
+            </select>
           </Field>
 
           <Field
