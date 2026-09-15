@@ -557,6 +557,7 @@ export async function executeImport(
             notes: payload.notes,
             phase: payload.phase,
             legacyImportKey: payload.legacyImportKey,
+            // SVN / Passeren / dossier_year are dashboard-only — never overwrite.
             updatedAt: new Date(),
           })
           .where(eq(mortgageCases.id, caseId));

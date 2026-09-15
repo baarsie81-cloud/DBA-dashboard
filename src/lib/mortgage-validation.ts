@@ -4,6 +4,7 @@ import {
   buildLegacyCustomerNameFromKlant1,
   cleanNamePart,
 } from "@/lib/customer-name";
+import { isDossierYear } from "@/lib/dossier-year";
 
 export const PHASE_OPTIONS: { value: DbMortgagePhase; label: string }[] = [
   { value: "prospect", label: "Prospect" },
@@ -95,6 +96,23 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     return { ok: false, error: "Kies een geldige fase." };
   }
 
+  const svn = formData.get("svn") != null;
+  const readyForPassing = formData.get("readyForPassing") != null;
+
+  const dossierYearRaw = emptyToNull(formData.get("dossierYear"));
+  let dossierYear: number | null = null;
+  if (dossierYearRaw != null) {
+    const year = Number(dossierYearRaw);
+    if (!Number.isInteger(year) || !isDossierYear(year)) {
+      return {
+        ok: false,
+        error: "Kies een geldig dossierjaar.",
+        fieldErrors: { dossierYear: "Kies een geldig dossierjaar." },
+      };
+    }
+    dossierYear = year;
+  }
+
   const principal = parseAmountInput(
     emptyToNull(formData.get("principalAmount")),
   );
@@ -177,6 +195,9 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       fee: fee.value,
       feeProcessingDate: dates.feeProcessingDate,
       notes: emptyToNull(formData.get("notes")),
+      svn,
+      readyForPassing,
+      dossierYear,
       phase: phaseRaw as DbMortgagePhase,
     },
   };

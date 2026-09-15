@@ -63,6 +63,12 @@ export const mortgageCases = pgTable(
     fee: numeric("fee", { precision: 12, scale: 2 }),
     feeProcessingDate: date("fee_processing_date"),
     notes: text("notes"),
+    /** Whether SVN applies to this dossier. */
+    svn: boolean("svn").notNull().default(false),
+    /** Signal that the case is ready and waiting to pass. */
+    readyForPassing: boolean("ready_for_passing").notNull().default(false),
+    /** Administrative dossier year (not derived from dates). */
+    dossierYear: integer("dossier_year"),
     /** Deterministic key for DBA Excel re-import; null for manually created cases. */
     legacyImportKey: text("legacy_import_key"),
     phase: mortgagePhaseEnum("phase").notNull().default("prospect"),
@@ -83,6 +89,7 @@ export const mortgageCases = pgTable(
       table.mortgageConfirmationDate,
     ),
     index("mortgage_cases_fee_processing_date_idx").on(table.feeProcessingDate),
+    index("mortgage_cases_dossier_year_idx").on(table.dossierYear),
     uniqueIndex("mortgage_cases_legacy_import_key_uidx").on(table.legacyImportKey),
   ],
 );
