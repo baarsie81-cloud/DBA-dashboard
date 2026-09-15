@@ -17,6 +17,7 @@ import {
   PHASE_OPTIONS,
 } from "@/lib/mortgage-validation";
 import { resolveKlant1FormDefaults } from "@/lib/customer-name";
+import { DOSSIER_YEAR_OPTIONS } from "@/lib/dossier-year";
 
 type MortgageFormProps = {
   mode: "create" | "edit";
@@ -272,6 +273,51 @@ export function MortgageForm({
               ))}
             </select>
           </Field>
+
+          <Field
+            label="Dossierjaar"
+            htmlFor="dossierYear"
+            error={state.fieldErrors?.dossierYear}
+          >
+            <select
+              id="dossierYear"
+              name="dossierYear"
+              defaultValue={
+                initial?.dossierYear != null ? String(initial.dossierYear) : ""
+              }
+              className={fieldClass}
+            >
+              <option value="">—</option>
+              {DOSSIER_YEAR_OPTIONS.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dba-border bg-dba-background px-3 py-2.5 text-sm text-dba-charcoal">
+            <input
+              type="checkbox"
+              name="svn"
+              value="true"
+              defaultChecked={initial?.svn ?? false}
+              className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green"
+            />
+            <span>SVN</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dba-border bg-dba-background px-3 py-2.5 text-sm text-dba-charcoal">
+            <input
+              type="checkbox"
+              name="readyForPassing"
+              value="true"
+              defaultChecked={initial?.readyForPassing ?? false}
+              className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green"
+            />
+            <span>Passeren</span>
+          </label>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

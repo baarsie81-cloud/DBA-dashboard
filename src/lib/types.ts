@@ -13,6 +13,9 @@ export type MortgageDossier = {
   clientNameSecondary: string | null;
   advisor: string | null;
   lender: string | null;
+  svn: boolean;
+  readyForPassing: boolean;
+  dossierYear: number | null;
   principal: number | null;
   applicationDate: string | null;
   conditionalDate: string | null;

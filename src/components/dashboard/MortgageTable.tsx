@@ -23,6 +23,7 @@ import {
   ArrowDown,
   ArrowDownUp,
   ArrowUp,
+  Check,
   GripVertical,
   MoreHorizontal,
 } from "lucide-react";
@@ -255,6 +256,23 @@ function renderColumnCell(
           {displayText(dossier.lender)}
         </td>
       );
+    case "svn":
+      return (
+        <td
+          key={columnKey}
+          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+        >
+          {dossier.svn ? (
+            <Check
+              className="h-4 w-4 text-dba-dark-green"
+              aria-label="SVN"
+              strokeWidth={2.5}
+            />
+          ) : (
+            <span className="text-dba-muted">—</span>
+          )}
+        </td>
+      );
     case "principal_amount":
       return (
         <td
@@ -289,6 +307,23 @@ function renderColumnCell(
           className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
         >
           {formatDateNl(dossier.closingDate)}
+        </td>
+      );
+    case "ready_for_passing":
+      return (
+        <td
+          key={columnKey}
+          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+        >
+          {dossier.readyForPassing ? (
+            <Check
+              className="h-4 w-4 text-dba-dark-green"
+              aria-label="Passeren"
+              strokeWidth={2.5}
+            />
+          ) : (
+            <span className="text-dba-muted">—</span>
+          )}
         </td>
       );
     case "offer_expiry_date":

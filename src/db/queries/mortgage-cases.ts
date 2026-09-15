@@ -28,6 +28,9 @@ export type MortgageCaseRow = {
   passingDate: string | Date | null;
   offerExpiryDate: string | Date | null;
   feeProcessingDate: string | Date | null;
+  svn: boolean;
+  readyForPassing: boolean;
+  dossierYear: number | null;
   phase: DbMortgagePhase;
   advisorName: string | null;
   lenderName: string | null;
@@ -55,6 +58,9 @@ export type MortgageCaseDetail = {
   fee: string | null;
   feeProcessingDate: string | Date | null;
   notes: string | null;
+  svn: boolean;
+  readyForPassing: boolean;
+  dossierYear: number | null;
   phase: DbMortgagePhase;
 };
 
@@ -79,6 +85,9 @@ export type MortgageCaseWriteInput = {
   fee: string | null;
   feeProcessingDate: string | null;
   notes: string | null;
+  svn: boolean;
+  readyForPassing: boolean;
+  dossierYear: number | null;
   phase: DbMortgagePhase;
 };
 
@@ -228,6 +237,9 @@ export async function getMortgageCasesByPhase(
       passingDate: mortgageCases.passingDate,
       offerExpiryDate: mortgageCases.offerExpiryDate,
       feeProcessingDate: mortgageCases.feeProcessingDate,
+      svn: mortgageCases.svn,
+      readyForPassing: mortgageCases.readyForPassing,
+      dossierYear: mortgageCases.dossierYear,
       phase: mortgageCases.phase,
       advisorName: advisorNamesSql,
       lenderName: lenders.name,
@@ -264,6 +276,9 @@ export async function getMortgageCaseById(
       fee: mortgageCases.fee,
       feeProcessingDate: mortgageCases.feeProcessingDate,
       notes: mortgageCases.notes,
+      svn: mortgageCases.svn,
+      readyForPassing: mortgageCases.readyForPassing,
+      dossierYear: mortgageCases.dossierYear,
       phase: mortgageCases.phase,
     })
     .from(mortgageCases)
@@ -307,6 +322,9 @@ export async function createMortgageCase(
         fee: input.fee,
         feeProcessingDate: input.feeProcessingDate,
         notes: input.notes,
+        svn: input.svn,
+        readyForPassing: input.readyForPassing,
+        dossierYear: input.dossierYear,
         phase: input.phase,
         updatedAt: new Date(),
       })
@@ -355,6 +373,9 @@ export async function updateMortgageCase(
         fee: input.fee,
         feeProcessingDate: input.feeProcessingDate,
         notes: input.notes,
+        svn: input.svn,
+        readyForPassing: input.readyForPassing,
+        dossierYear: input.dossierYear,
         phase: input.phase,
         updatedAt: new Date(),
       })

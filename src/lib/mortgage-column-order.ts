@@ -4,10 +4,12 @@ export const MORTGAGE_COLUMN_KEYS = [
   "customer_name",
   "advisor",
   "lender",
+  "svn",
   "principal_amount",
   "application_date",
   "financing_condition_date",
   "passing_date",
+  "ready_for_passing",
   "offer_expiry_date",
   "fee_processing_date",
   "phase",
@@ -22,6 +24,14 @@ export const DEFAULT_MORTGAGE_COLUMN_ORDER: MortgageColumnKey[] = [
 export const MORTGAGE_COLUMN_ORDER_SETTING_KEY = "mortgage_table_column_order";
 
 const KNOWN_KEYS = new Set<string>(MORTGAGE_COLUMN_KEYS);
+
+/** Preferred insertion anchors for newly added known columns. */
+const COLUMN_INSERT_AFTER: Partial<
+  Record<MortgageColumnKey, MortgageColumnKey>
+> = {
+  svn: "lender",
+  ready_for_passing: "passing_date",
+};
 
 const LEGACY_KEY_MAP: Record<string, MortgageColumnKey> = {
   advisor_id: "advisor",
@@ -61,6 +71,10 @@ export const MORTGAGE_COLUMN_META: Record<
     label: "Geldverstrekker",
     sortField: "lender",
   },
+  svn: {
+    key: "svn",
+    label: "SVN",
+  },
   principal_amount: {
     key: "principal_amount",
     label: "Hoofdsom",
@@ -81,6 +95,10 @@ export const MORTGAGE_COLUMN_META: Record<
     key: "passing_date",
     label: "Passeerdatum",
     sortField: "passing_date",
+  },
+  ready_for_passing: {
+    key: "ready_for_passing",
+    label: "Passeren",
   },
   offer_expiry_date: {
     key: "offer_expiry_date",
@@ -104,6 +122,27 @@ function resolveKey(raw: unknown): MortgageColumnKey | null {
   return LEGACY_KEY_MAP[raw] ?? null;
 }
 
+function insertMissingColumn(
+  ordered: MortgageColumnKey[],
+  seen: Set<MortgageColumnKey>,
+  key: MortgageColumnKey,
+) {
+  if (seen.has(key)) return;
+
+  const after = COLUMN_INSERT_AFTER[key];
+  if (after) {
+    const index = ordered.indexOf(after);
+    if (index >= 0) {
+      ordered.splice(index + 1, 0, key);
+      seen.add(key);
+      return;
+    }
+  }
+
+  ordered.push(key);
+  seen.add(key);
+}
+
 export function normalizeMortgageColumnOrder(
   input: unknown,
 ): MortgageColumnKey[] {
@@ -120,7 +159,7 @@ export function normalizeMortgageColumnOrder(
   }
 
   for (const key of MORTGAGE_COLUMN_KEYS) {
-    if (!seen.has(key)) ordered.push(key);
+    insertMissingColumn(ordered, seen, key);
   }
 
   return ordered.length > 0 ? ordered : [...DEFAULT_MORTGAGE_COLUMN_ORDER];
