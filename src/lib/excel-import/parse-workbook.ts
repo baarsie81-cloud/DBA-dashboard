@@ -10,7 +10,6 @@ import {
   type DbaSheetName,
 } from "./constants";
 import {
-  buildCustomerName,
   buildExcelNotesSection,
   buildLegacyImportKey,
   emptyToNull,
@@ -18,13 +17,21 @@ import {
   parseExcelDate,
   splitAdvisorLabels,
 } from "./normalize";
+import {
+  buildLegacyCustomerNameFromKlant1,
+  cleanNamePart,
+  combineExcelLastName,
+} from "@/lib/customer-name";
 
 export type ParsedImportRow = {
   sheet: DbaSheetName;
   excelRowNumber: number;
   phase: MortgagePhase;
   legacyImportKey: string;
+  /** Legacy display string built from Klant 1 only. */
   customerName: string;
+  customer1LastName: string;
+  customer1Initials: string | null;
   lastName: string;
   initials: string | null;
   infix: string | null;
@@ -157,14 +164,17 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
 
       const warnings: string[] = [];
       const lastName = emptyToNull(cell(row, headers, DBA_COLUMNS.lastName));
-      const initials = emptyToNull(cell(row, headers, DBA_COLUMNS.initials));
+      const initials = cleanNamePart(
+        emptyToNull(cell(row, headers, DBA_COLUMNS.initials)),
+      );
       const infix = emptyToNull(cell(row, headers, DBA_COLUMNS.infix));
+      const customer1LastName = combineExcelLastName(lastName, infix);
       const customerLabel =
-        buildCustomerName(lastName, initials, infix) ??
-        lastName ??
+        buildLegacyCustomerNameFromKlant1(customer1LastName, initials) ||
+        lastName ||
         `Rij ${excelRowNumber}`;
 
-      if (!lastName) {
+      if (!lastName || !customer1LastName) {
         issues.push({
           sheet: sheetName,
           excelRowNumber,
@@ -174,7 +184,10 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
         continue;
       }
 
-      const customerName = buildCustomerName(lastName, initials, infix);
+      const customerName = buildLegacyCustomerNameFromKlant1(
+        customer1LastName,
+        initials,
+      );
       if (!customerName) {
         issues.push({
           sheet: sheetName,
@@ -274,6 +287,8 @@ export function parseDbaWorkbook(buffer: ArrayBuffer): ParseWorkbookResult {
           excelRowNumber,
         }),
         customerName,
+        customer1LastName,
+        customer1Initials: initials,
         lastName,
         initials,
         infix,

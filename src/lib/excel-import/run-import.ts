@@ -21,6 +21,8 @@ export type ImportRowStatus = "new" | "updated" | "unchanged" | "error";
 export type ImportWritePayload = {
   legacyImportKey: string;
   customerName: string;
+  customer1LastName: string;
+  customer1Initials: string | null;
   mortgageType: string | null;
   applicationDate: string | null;
   lenderId: string | null;
@@ -78,6 +80,10 @@ type ExistingCase = {
   id: string;
   legacyImportKey: string | null;
   customerName: string;
+  customer1LastName: string | null;
+  customer1Initials: string | null;
+  customer2LastName: string | null;
+  customer2Initials: string | null;
   mortgageType: string | null;
   applicationDate: string | Date | null;
   lenderId: string | null;
@@ -121,6 +127,8 @@ function excelNotesComparable(notes: string | null): string | null {
 
 function hasFieldChanges(existing: ExistingCase, next: ImportWritePayload): boolean {
   if (existing.customerName !== next.customerName) return true;
+  if (!sameText(existing.customer1LastName, next.customer1LastName)) return true;
+  if (!sameText(existing.customer1Initials, next.customer1Initials)) return true;
   if (!sameText(existing.mortgageType, next.mortgageType)) return true;
   if (!sameText(toIsoDate(existing.applicationDate), next.applicationDate)) return true;
   if (!sameText(existing.lenderId, next.lenderId)) return true;
@@ -149,6 +157,10 @@ async function loadExistingByKeys(keys: string[]): Promise<Map<string, ExistingC
       id: mortgageCases.id,
       legacyImportKey: mortgageCases.legacyImportKey,
       customerName: mortgageCases.customerName,
+      customer1LastName: mortgageCases.customer1LastName,
+      customer1Initials: mortgageCases.customer1Initials,
+      customer2LastName: mortgageCases.customer2LastName,
+      customer2Initials: mortgageCases.customer2Initials,
       mortgageType: mortgageCases.mortgageType,
       applicationDate: mortgageCases.applicationDate,
       lenderId: mortgageCases.lenderId,
@@ -379,6 +391,8 @@ export async function buildImportPreview(
     const payload: ImportWritePayload = {
       legacyImportKey: row.legacyImportKey,
       customerName: row.customerName,
+      customer1LastName: row.customer1LastName,
+      customer1Initials: row.customer1Initials,
       mortgageType: row.mortgageType,
       applicationDate: row.applicationDate,
       lenderId,
@@ -481,6 +495,8 @@ export async function executeImport(
             .insert(mortgageCases)
             .values({
               customerName: payload.customerName,
+              customer1LastName: payload.customer1LastName,
+              customer1Initials: payload.customer1Initials,
               mortgageType: payload.mortgageType,
               applicationDate: payload.applicationDate,
               lenderId: payload.lenderId,
@@ -522,6 +538,9 @@ export async function executeImport(
           .update(mortgageCases)
           .set({
             customerName: payload.customerName,
+            customer1LastName: payload.customer1LastName,
+            customer1Initials: payload.customer1Initials,
+            // Klant 2 is dashboard-only — never overwrite on Excel reimport.
             mortgageType: payload.mortgageType,
             applicationDate: payload.applicationDate,
             lenderId: payload.lenderId,

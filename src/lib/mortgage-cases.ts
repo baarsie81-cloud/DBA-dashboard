@@ -1,4 +1,5 @@
 import type { MortgageCaseRow } from "@/db/queries/mortgage-cases";
+import { resolveCustomerNameLines } from "@/lib/customer-name";
 import { addDaysIso, todayIsoAmsterdam } from "@/lib/dates";
 import { formatCurrency } from "@/lib/format";
 import type { MortgagePhaseKpiVariant } from "@/lib/mortgage-phase-config";
@@ -33,9 +34,18 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
       ? null
       : Number(row.principalAmount);
 
+  const names = resolveCustomerNameLines({
+    customer1LastName: row.customer1LastName,
+    customer1Initials: row.customer1Initials,
+    customer2LastName: row.customer2LastName,
+    customer2Initials: row.customer2Initials,
+    customerName: row.customerName,
+  });
+
   return {
     id: row.id,
-    clientName: row.customerName,
+    clientName: names.primary,
+    clientNameSecondary: names.secondary,
     advisor: row.advisorName,
     lender: row.lenderName,
     principal: principal != null && Number.isFinite(principal) ? principal : null,

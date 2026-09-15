@@ -227,7 +227,14 @@ function renderColumnCell(
           key={columnKey}
           className="px-4 py-3.5 font-medium whitespace-nowrap text-dba-charcoal"
         >
-          {dossier.clientName}
+          <div className="flex flex-col gap-0.5">
+            <span>{dossier.clientName}</span>
+            {dossier.clientNameSecondary ? (
+              <span className="text-[12px] font-normal text-dba-muted">
+                {dossier.clientNameSecondary}
+              </span>
+            ) : null}
+          </div>
         </td>
       );
     case "advisor":
