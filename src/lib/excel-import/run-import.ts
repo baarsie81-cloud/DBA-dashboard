@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import {
   advisors,
   excelImports,
+  lenderAliases,
   lenders,
   mortgageCaseAdvisors,
   mortgageCases,
@@ -221,6 +222,12 @@ async function warmLookupCaches(): Promise<{
   const lenderCache = new Map<string, string>();
   const advisorCache = new Map<string, string>();
 
+  for (const row of await db
+    .select({ lenderId: lenderAliases.lenderId, alias: lenderAliases.normalizedAlias })
+    .from(lenderAliases)) {
+    lenderCache.set(row.alias, row.lenderId);
+  }
+  // A current lender record remains authoritative if old data contains both.
   for (const row of await db.select({ id: lenders.id, name: lenders.name }).from(lenders)) {
     lenderCache.set(normalizeLookupKey(row.name), row.id);
   }

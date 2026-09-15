@@ -36,6 +36,27 @@ export const lenders = pgTable("lenders", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const lenderAliases = pgTable(
+  "lender_aliases",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    aliasName: text("alias_name").notNull(),
+    normalizedAlias: text("normalized_alias").notNull(),
+    lenderId: uuid("lender_id")
+      .notNull()
+      .references(() => lenders.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("lender_aliases_normalized_alias_uidx").on(
+      table.normalizedAlias,
+    ),
+    index("lender_aliases_lender_id_idx").on(table.lenderId),
+  ],
+);
+
 export const mortgageCases = pgTable(
   "mortgage_cases",
   {
@@ -139,6 +160,7 @@ export const excelImports = pgTable("excel_imports", {
 
 export type Advisor = typeof advisors.$inferSelect;
 export type Lender = typeof lenders.$inferSelect;
+export type LenderAlias = typeof lenderAliases.$inferSelect;
 export type MortgageCase = typeof mortgageCases.$inferSelect;
 export type MortgageCaseAdvisor = typeof mortgageCaseAdvisors.$inferSelect;
 export type DashboardSetting = typeof dashboardSettings.$inferSelect;

@@ -3,28 +3,37 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
-import type { LenderOption } from "@/db/queries/lenders";
+import type { ManagedLender } from "@/db/queries/lenders";
+import { LenderDeleteForm } from "./LenderDeleteForm";
 import { LenderForm } from "./LenderForm";
+import { LenderMergeForm } from "./LenderMergeForm";
 
 type LendersBoardProps = {
-  lenders: LenderOption[];
+  lenders: ManagedLender[];
 };
 
 type PanelState =
   | { open: false }
-  | { open: true; mode: "create" | "edit"; initial: LenderOption | null };
+  | { open: true; mode: "create"; lender: null }
+  | {
+      open: true;
+      mode: "edit" | "merge" | "delete";
+      lender: ManagedLender;
+    };
 
 export function LendersBoard({ lenders }: LendersBoardProps) {
   const router = useRouter();
   const [panel, setPanel] = useState<PanelState>({ open: false });
+  const [notice, setNotice] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const closePanel = useCallback(() => {
     setPanel({ open: false });
   }, []);
 
-  const handleSaved = useCallback(() => {
+  const handleCompleted = useCallback((message: string) => {
     setPanel({ open: false });
+    setNotice(message);
     startTransition(() => {
       router.refresh();
     });
@@ -44,15 +53,22 @@ export function LendersBoard({ lenders }: LendersBoardProps) {
       <div className="flex items-center justify-end">
         <button
           type="button"
-          onClick={() =>
-            setPanel({ open: true, mode: "create", initial: null })
-          }
+          onClick={() => setPanel({ open: true, mode: "create", lender: null })}
           className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-dba-dark-green px-4 text-sm font-medium text-white transition-colors hover:bg-dba-green focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-dark-green focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" strokeWidth={2} />
           Geldverstrekker toevoegen
         </button>
       </div>
+
+      {notice ? (
+        <div
+          role="status"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+        >
+          {notice}
+        </div>
+      ) : null}
 
       <section className="overflow-hidden rounded-xl border border-dba-border bg-dba-surface shadow-[0_1px_2px_rgba(51,53,54,0.03)]">
         <div className="overflow-x-auto">
@@ -89,6 +105,10 @@ export function LendersBoard({ lenders }: LendersBoardProps) {
                   >
                     <td className="px-4 py-3.5 font-medium text-dba-charcoal">
                       {lender.name}
+                      <span className="mt-0.5 block text-[12px] font-normal text-dba-muted">
+                        {lender.caseCount} dossier
+                        {lender.caseCount === 1 ? "" : "s"}
+                      </span>
                     </td>
                     <td className="px-4 py-3.5">
                       <span
@@ -102,19 +122,43 @@ export function LendersBoard({ lenders }: LendersBoardProps) {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPanel({
-                            open: true,
-                            mode: "edit",
-                            initial: lender,
-                          })
-                        }
-                        className="inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
-                      >
-                        Bewerken
-                      </button>
+                      <div className="flex flex-wrap items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPanel({
+                              open: true,
+                              mode: "edit",
+                              lender,
+                            })
+                          }
+                          className="inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
+                        >
+                          Bewerken
+                        </button>
+                        {lenders.length > 1 ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPanel({ open: true, mode: "merge", lender })
+                            }
+                            className="inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-dark-green focus-visible:ring-offset-1"
+                          >
+                            Samenvoegen
+                          </button>
+                        ) : null}
+                        {lender.caseCount === 0 ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPanel({ open: true, mode: "delete", lender })
+                            }
+                            className="inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-red-700 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:ring-offset-1"
+                          >
+                            Verwijderen
+                          </button>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -156,7 +200,11 @@ export function LendersBoard({ lenders }: LendersBoardProps) {
                 >
                   {panel.mode === "create"
                     ? "Geldverstrekker toevoegen"
-                    : "Geldverstrekker bewerken"}
+                    : panel.mode === "edit"
+                      ? "Geldverstrekker bewerken"
+                      : panel.mode === "merge"
+                        ? "Geldverstrekker samenvoegen"
+                        : "Geldverstrekker verwijderen"}
                 </h2>
               </div>
               <button
@@ -169,13 +217,40 @@ export function LendersBoard({ lenders }: LendersBoardProps) {
               </button>
             </div>
 
-            <LenderForm
-              key={panel.mode === "edit" ? panel.initial?.id ?? "edit" : "create"}
-              mode={panel.mode}
-              initial={panel.initial}
-              onCancel={closePanel}
-              onSuccess={handleSaved}
-            />
+            {panel.mode === "create" || panel.mode === "edit" ? (
+              <LenderForm
+                key={panel.mode === "edit" ? panel.lender.id : "create"}
+                mode={panel.mode}
+                initial={panel.lender}
+                onCancel={closePanel}
+                onSuccess={() =>
+                  handleCompleted(
+                    panel.mode === "create"
+                      ? "Geldverstrekker toegevoegd."
+                      : "Geldverstrekker bijgewerkt.",
+                  )
+                }
+              />
+            ) : panel.mode === "merge" ? (
+              <LenderMergeForm
+                key={panel.lender.id}
+                source={panel.lender}
+                lenders={lenders}
+                onCancel={closePanel}
+                onSuccess={() =>
+                  handleCompleted("Geldverstrekker samengevoegd.")
+                }
+              />
+            ) : (
+              <LenderDeleteForm
+                key={panel.lender.id}
+                lender={panel.lender}
+                onCancel={closePanel}
+                onSuccess={() =>
+                  handleCompleted("Geldverstrekker verwijderd.")
+                }
+              />
+            )}
           </div>
         </div>
       ) : null}
