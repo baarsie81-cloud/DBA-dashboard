@@ -1,5 +1,9 @@
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 import type { MortgageCaseWriteInput } from "@/db/queries/mortgage-cases";
+import {
+  buildLegacyCustomerNameFromKlant1,
+  cleanNamePart,
+} from "@/lib/customer-name";
 
 export const PHASE_OPTIONS: { value: DbMortgagePhase; label: string }[] = [
   { value: "prospect", label: "Prospect" },
@@ -60,14 +64,31 @@ function parseDateInput(
 }
 
 export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
-  const customerName = String(formData.get("customerName") ?? "").trim();
-  if (!customerName) {
+  const customer1LastName = cleanNamePart(
+    String(formData.get("customer1LastName") ?? ""),
+  );
+  if (!customer1LastName) {
     return {
       ok: false,
-      error: "Klantnaam is verplicht.",
-      fieldErrors: { customerName: "Klantnaam is verplicht." },
+      error: "Achternaam van klant 1 is verplicht.",
+      fieldErrors: { customer1LastName: "Achternaam is verplicht." },
     };
   }
+
+  const customer1Initials = cleanNamePart(
+    String(formData.get("customer1Initials") ?? ""),
+  );
+  const customer2LastName = cleanNamePart(
+    String(formData.get("customer2LastName") ?? ""),
+  );
+  const customer2Initials = cleanNamePart(
+    String(formData.get("customer2Initials") ?? ""),
+  );
+
+  const customerName = buildLegacyCustomerNameFromKlant1(
+    customer1LastName,
+    customer1Initials,
+  );
 
   const phaseRaw = String(formData.get("phase") ?? "").trim();
   if (!PHASE_VALUES.has(phaseRaw as DbMortgagePhase)) {
@@ -137,6 +158,10 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     ok: true,
     data: {
       customerName,
+      customer1LastName,
+      customer1Initials,
+      customer2LastName,
+      customer2Initials,
       advisorIds: Array.from(new Set(advisorIds)),
       mortgageType: emptyToNull(formData.get("mortgageType")),
       applicationDate: dates.applicationDate,

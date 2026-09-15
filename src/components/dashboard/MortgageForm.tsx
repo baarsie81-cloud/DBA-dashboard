@@ -16,6 +16,7 @@ import {
   dateForInput,
   PHASE_OPTIONS,
 } from "@/lib/mortgage-validation";
+import { resolveKlant1FormDefaults } from "@/lib/customer-name";
 
 type MortgageFormProps = {
   mode: "create" | "edit";
@@ -86,6 +87,11 @@ export function MortgageForm({
   }, [state, onSuccess]);
 
   const phase = initial?.phase ?? defaultPhase;
+  const klant1Defaults = resolveKlant1FormDefaults({
+    customer1LastName: initial?.customer1LastName,
+    customer1Initials: initial?.customer1Initials,
+    customerName: initial?.customerName,
+  });
 
   function handleConfirmDelete() {
     if (!initial?.id) return;
@@ -119,21 +125,79 @@ export function MortgageForm({
           </div>
         ) : null}
 
-        <Field
-          label="Klantnaam *"
-          htmlFor="customerName"
-          error={state.fieldErrors?.customerName}
-        >
-          <input
-            id="customerName"
-            name="customerName"
-            type="text"
-            required
-            defaultValue={initial?.customerName ?? ""}
-            className={fieldClass}
-            autoComplete="off"
-          />
-        </Field>
+        <div className="space-y-3 rounded-lg border border-dba-border bg-dba-background/60 p-4">
+          <p className="text-[13px] font-semibold text-dba-charcoal">Klant 1</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field
+              label="Achternaam *"
+              htmlFor="customer1LastName"
+              error={state.fieldErrors?.customer1LastName}
+            >
+              <input
+                id="customer1LastName"
+                name="customer1LastName"
+                type="text"
+                required
+                defaultValue={klant1Defaults.lastName}
+                className={fieldClass}
+                autoComplete="off"
+              />
+            </Field>
+            <Field
+              label="Voorletter(s)"
+              htmlFor="customer1Initials"
+              error={state.fieldErrors?.customer1Initials}
+            >
+              <input
+                id="customer1Initials"
+                name="customer1Initials"
+                type="text"
+                defaultValue={klant1Defaults.initials}
+                className={fieldClass}
+                autoComplete="off"
+                placeholder="P."
+              />
+            </Field>
+          </div>
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-dba-border/80 p-4">
+          <p className="text-[13px] font-semibold text-dba-charcoal">
+            Klant 2 / partner{" "}
+            <span className="font-normal text-dba-muted">(optioneel)</span>
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field
+              label="Achternaam"
+              htmlFor="customer2LastName"
+              error={state.fieldErrors?.customer2LastName}
+            >
+              <input
+                id="customer2LastName"
+                name="customer2LastName"
+                type="text"
+                defaultValue={initial?.customer2LastName ?? ""}
+                className={fieldClass}
+                autoComplete="off"
+              />
+            </Field>
+            <Field
+              label="Voorletter(s)"
+              htmlFor="customer2Initials"
+              error={state.fieldErrors?.customer2Initials}
+            >
+              <input
+                id="customer2Initials"
+                name="customer2Initials"
+                type="text"
+                defaultValue={initial?.customer2Initials ?? ""}
+                className={fieldClass}
+                autoComplete="off"
+                placeholder="M."
+              />
+            </Field>
+          </div>
+        </div>
 
         <Field label="Adviseurs" htmlFor="advisorIds">
           <div

@@ -1,4 +1,4 @@
-import { and, eq, gte, ilike, isNull, lt, lte, sql, type SQL } from "drizzle-orm";
+import { and, eq, gte, isNull, lt, lte, sql, type SQL } from "drizzle-orm";
 import type {
   MortgageDeadlineFilter,
   MortgageListFilters,
@@ -18,6 +18,10 @@ import type { MortgageCase, MortgagePhase as DbMortgagePhase } from "@/db/schema
 export type MortgageCaseRow = {
   id: string;
   customerName: string;
+  customer1LastName: string | null;
+  customer1Initials: string | null;
+  customer2LastName: string | null;
+  customer2Initials: string | null;
   principalAmount: string | null;
   applicationDate: string | Date | null;
   financingConditionDate: string | Date | null;
@@ -56,6 +60,10 @@ export type MortgageCaseDetail = {
 
 export type MortgageCaseWriteInput = {
   customerName: string;
+  customer1LastName: string;
+  customer1Initials: string | null;
+  customer2LastName: string | null;
+  customer2Initials: string | null;
   advisorIds: string[];
   mortgageType: string | null;
   applicationDate: string | null;
@@ -130,7 +138,16 @@ function buildPhaseFilters(
 
   const search = filters?.search?.trim();
   if (search) {
-    clauses.push(ilike(mortgageCases.customerName, `%${search}%`));
+    const pattern = `%${search}%`;
+    clauses.push(
+      sql`(
+        ${mortgageCases.customerName} ILIKE ${pattern}
+        OR ${mortgageCases.customer1LastName} ILIKE ${pattern}
+        OR ${mortgageCases.customer1Initials} ILIKE ${pattern}
+        OR ${mortgageCases.customer2LastName} ILIKE ${pattern}
+        OR ${mortgageCases.customer2Initials} ILIKE ${pattern}
+      )`,
+    );
   }
 
   if (filters?.advisorId) {
@@ -201,6 +218,10 @@ export async function getMortgageCasesByPhase(
     .select({
       id: mortgageCases.id,
       customerName: mortgageCases.customerName,
+      customer1LastName: mortgageCases.customer1LastName,
+      customer1Initials: mortgageCases.customer1Initials,
+      customer2LastName: mortgageCases.customer2LastName,
+      customer2Initials: mortgageCases.customer2Initials,
       principalAmount: mortgageCases.principalAmount,
       applicationDate: mortgageCases.applicationDate,
       financingConditionDate: mortgageCases.financingConditionDate,
@@ -268,6 +289,10 @@ export async function createMortgageCase(
       .insert(mortgageCases)
       .values({
         customerName: input.customerName,
+        customer1LastName: input.customer1LastName,
+        customer1Initials: input.customer1Initials,
+        customer2LastName: input.customer2LastName,
+        customer2Initials: input.customer2Initials,
         mortgageType: input.mortgageType,
         applicationDate: input.applicationDate,
         lenderId: input.lenderId,
@@ -312,6 +337,10 @@ export async function updateMortgageCase(
       .update(mortgageCases)
       .set({
         customerName: input.customerName,
+        customer1LastName: input.customer1LastName,
+        customer1Initials: input.customer1Initials,
+        customer2LastName: input.customer2LastName,
+        customer2Initials: input.customer2Initials,
         mortgageType: input.mortgageType,
         applicationDate: input.applicationDate,
         lenderId: input.lenderId,

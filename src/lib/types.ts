@@ -7,7 +7,10 @@ export type MortgagePhase =
 /** Row shape for the mortgage table UI. */
 export type MortgageDossier = {
   id: string;
+  /** Primary display line (Klant 1 or legacy customer_name). */
   clientName: string;
+  /** Optional second line for Klant 2 / partner. */
+  clientNameSecondary: string | null;
   advisor: string | null;
   lender: string | null;
   principal: number | null;
