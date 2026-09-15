@@ -9,13 +9,9 @@ import {
   getAdvisorStatistics,
   getLenderStatistics,
   getOverviewKpis,
-  getOverviewYears,
 } from "@/db/queries/statistics";
 import { formatCurrency } from "@/lib/format";
-import {
-  currentAmsterdamYear,
-  parseOverviewParams,
-} from "@/lib/overview-params";
+import { parseOverviewParams } from "@/lib/overview-params";
 import type { KpiItem } from "@/lib/types";
 
 type PageProps = {
@@ -32,20 +28,13 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const filters = parseOverviewParams(params);
 
-  const [yearsFromData, advisors, lenders, kpis, advisorRows, lenderRows] =
-    await Promise.all([
-      getOverviewYears(),
-      listAdvisors(),
-      listLenders(),
-      getOverviewKpis(filters),
-      getAdvisorStatistics(filters),
-      getLenderStatistics(filters),
-    ]);
-
-  const currentYear = currentAmsterdamYear();
-  const years = Array.from(
-    new Set([currentYear, ...yearsFromData]),
-  ).sort((a, b) => b - a);
+  const [advisors, lenders, kpis, advisorRows, lenderRows] = await Promise.all([
+    listAdvisors(),
+    listLenders(),
+    getOverviewKpis(filters),
+    getAdvisorStatistics(filters),
+    getLenderStatistics(filters),
+  ]);
 
   const kpiItems: KpiItem[] = [
     {
@@ -83,11 +72,7 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
       />
 
       <Suspense fallback={<FiltersFallback />}>
-        <OverviewFilters
-          years={years}
-          advisors={advisors}
-          lenders={lenders}
-        />
+        <OverviewFilters advisors={advisors} lenders={lenders} />
       </Suspense>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
