@@ -25,12 +25,10 @@ import {
   ArrowUp,
   Check,
   GripVertical,
-  MoreHorizontal,
 } from "lucide-react";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
 import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
 import { formatFeeProcessingMonth } from "@/lib/fee-processing-month";
-import { todayIsoAmsterdam } from "@/lib/dates";
 import {
   DEFAULT_MORTGAGE_COLUMN_ORDER,
   MORTGAGE_COLUMN_META,
@@ -60,32 +58,6 @@ type MortgageTableProps = {
   onEdit?: (id: string) => void;
   onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
 };
-
-function OfferExpiryCell({ value }: { value: string | null }) {
-  if (!value) {
-    return (
-      <span className="tabular-nums text-dba-charcoal">
-        {formatDateNl(value)}
-      </span>
-    );
-  }
-
-  const expired = value < todayIsoAmsterdam();
-  const formatted = formatDateNl(value);
-
-  if (!expired) {
-    return <span className="tabular-nums text-dba-charcoal">{formatted}</span>;
-  }
-
-  return (
-    <span className="inline-flex flex-col gap-0.5">
-      <span className="tabular-nums text-amber-800/90">{formatted}</span>
-      <span className="text-[11px] font-normal tracking-normal text-amber-700/80 normal-case">
-        Verlopen
-      </span>
-    </span>
-  );
-}
 
 function phaseValueFromLabel(label: string): DbMortgagePhase {
   return (
@@ -301,6 +273,24 @@ function renderColumnCell(
           {formatDateNl(dossier.conditionalDate)}
         </td>
       );
+    case "guarantee_date":
+      return (
+        <td
+          key={columnKey}
+          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+        >
+          {formatDateNl(dossier.guaranteeDate)}
+        </td>
+      );
+    case "bank_guarantee":
+      return (
+        <td
+          key={columnKey}
+          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+        >
+          {displayText(dossier.bankGuarantee)}
+        </td>
+      );
     case "passing_date":
       return (
         <td
@@ -325,12 +315,6 @@ function renderColumnCell(
           ) : (
             <span className="text-dba-muted">—</span>
           )}
-        </td>
-      );
-    case "offer_expiry_date":
-      return (
-        <td key={columnKey} className="px-4 py-3.5 whitespace-nowrap">
-          <OfferExpiryCell value={dossier.offerExpiryDate} />
         </td>
       );
     case "fee_processing_date":
@@ -514,16 +498,13 @@ export function MortgageTable({
                     />
                   ))}
                 </SortableContext>
-                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
-                  Acties
-                </th>
               </tr>
             </thead>
             <tbody>
               {total === 0 ? (
                 <tr>
                   <td
-                    colSpan={columnOrder.length + 1}
+                    colSpan={columnOrder.length}
                     className="px-4 py-12 text-center text-sm text-dba-muted"
                   >
                     {emptyMessage}
@@ -554,23 +535,6 @@ export function MortgageTable({
                     {columnOrder.map((columnKey) =>
                       renderColumnCell(columnKey, dossier, onPhaseChange),
                     )}
-                    <td className="px-4 py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onEdit?.(dossier.id);
-                        }}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-dba-muted transition-colors hover:bg-dba-background hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
-                        aria-label={`Bewerken: ${dossier.clientName}`}
-                      >
-                        <MoreHorizontal
-                          className="h-4 w-4"
-                          strokeWidth={1.75}
-                        />
-                        <span className="sr-only sm:not-sr-only">Bewerken</span>
-                      </button>
-                    </td>
                   </tr>
                 ))
               )}

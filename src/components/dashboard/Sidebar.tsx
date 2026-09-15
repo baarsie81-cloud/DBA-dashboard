@@ -150,7 +150,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-white/10 px-4 py-4">
-        <p className="px-1 text-sm font-medium text-white/90">DBA Advies</p>
+        <p className="px-1 text-sm font-medium text-white/90">DBA advies</p>
         <form action={logoutAction}>
           <button
             type="submit"

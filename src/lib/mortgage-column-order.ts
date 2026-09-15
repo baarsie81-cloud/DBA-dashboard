@@ -8,9 +8,10 @@ export const MORTGAGE_COLUMN_KEYS = [
   "principal_amount",
   "application_date",
   "financing_condition_date",
+  "guarantee_date",
+  "bank_guarantee",
   "passing_date",
   "ready_for_passing",
-  "offer_expiry_date",
   "fee_processing_date",
   "phase",
 ] as const;
@@ -25,11 +26,22 @@ export const MORTGAGE_COLUMN_ORDER_SETTING_KEY = "mortgage_table_column_order";
 
 const KNOWN_KEYS = new Set<string>(MORTGAGE_COLUMN_KEYS);
 
+/** Keys that used to appear in saved settings but are no longer visible columns. */
+const REMOVED_COLUMN_KEYS = new Set([
+  "offer_expiry_date",
+  "offerExpiryDate",
+  "actions",
+  "action",
+  "bewerken",
+]);
+
 /** Preferred insertion anchors for newly added known columns. */
 const COLUMN_INSERT_AFTER: Partial<
   Record<MortgageColumnKey, MortgageColumnKey>
 > = {
   svn: "lender",
+  guarantee_date: "financing_condition_date",
+  bank_guarantee: "guarantee_date",
   ready_for_passing: "passing_date",
 };
 
@@ -41,8 +53,9 @@ const LEGACY_KEY_MAP: Record<string, MortgageColumnKey> = {
   applicationDate: "application_date",
   financingConditionDate: "financing_condition_date",
   passingDate: "passing_date",
-  offerExpiryDate: "offer_expiry_date",
   feeProcessingDate: "fee_processing_date",
+  guaranteeDate: "guarantee_date",
+  bankGuarantee: "bank_guarantee",
 };
 
 export type MortgageColumnMeta = {
@@ -88,8 +101,18 @@ export const MORTGAGE_COLUMN_META: Record<
   },
   financing_condition_date: {
     key: "financing_condition_date",
-    label: "Ontbindende v.",
+    label: "Ontbindende vw",
     sortField: "financing_condition_date",
+  },
+  guarantee_date: {
+    key: "guarantee_date",
+    label: "Datum BG / WBS",
+    sortField: "guarantee_date",
+  },
+  bank_guarantee: {
+    key: "bank_guarantee",
+    label: "BG / WBS",
+    sortField: "bank_guarantee",
   },
   passing_date: {
     key: "passing_date",
@@ -99,11 +122,6 @@ export const MORTGAGE_COLUMN_META: Record<
   ready_for_passing: {
     key: "ready_for_passing",
     label: "Passeren",
-  },
-  offer_expiry_date: {
-    key: "offer_expiry_date",
-    label: "Offerte vervalt",
-    sortField: "offer_expiry_date",
   },
   fee_processing_date: {
     key: "fee_processing_date",
@@ -118,6 +136,7 @@ export const MORTGAGE_COLUMN_META: Record<
 
 function resolveKey(raw: unknown): MortgageColumnKey | null {
   if (typeof raw !== "string") return null;
+  if (REMOVED_COLUMN_KEYS.has(raw)) return null;
   if (KNOWN_KEYS.has(raw)) return raw as MortgageColumnKey;
   return LEGACY_KEY_MAP[raw] ?? null;
 }

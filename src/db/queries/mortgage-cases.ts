@@ -25,6 +25,8 @@ export type MortgageCaseRow = {
   principalAmount: string | null;
   applicationDate: string | Date | null;
   financingConditionDate: string | Date | null;
+  guaranteeDate: string | Date | null;
+  bankGuarantee: string | null;
   passingDate: string | Date | null;
   offerExpiryDate: string | Date | null;
   feeProcessingDate: string | Date | null;
@@ -75,12 +77,10 @@ export type MortgageCaseWriteInput = {
   applicationDate: string | null;
   lenderId: string | null;
   principalAmount: string | null;
-  lastCheckDate: string | null;
   financingConditionDate: string | null;
   bankGuarantee: string | null;
   guaranteeDate: string | null;
   passingDate: string | null;
-  offerExpiryDate: string | null;
   mortgageConfirmationDate: string | null;
   fee: string | null;
   feeProcessingDate: string | null;
@@ -129,6 +129,10 @@ function buildOrderBy(
       return sql`${mortgageCases.applicationDate} ${sql.raw(dir)} NULLS LAST`;
     case "financing_condition_date":
       return sql`${mortgageCases.financingConditionDate} ${sql.raw(dir)} NULLS LAST`;
+    case "guarantee_date":
+      return sql`${mortgageCases.guaranteeDate} ${sql.raw(dir)} NULLS LAST`;
+    case "bank_guarantee":
+      return sql`${mortgageCases.bankGuarantee} ${sql.raw(dir)} NULLS LAST`;
     case "offer_expiry_date":
       return sql`${mortgageCases.offerExpiryDate} ${sql.raw(dir)} NULLS LAST`;
     case "fee_processing_date":
@@ -234,6 +238,8 @@ export async function getMortgageCasesByPhase(
       principalAmount: mortgageCases.principalAmount,
       applicationDate: mortgageCases.applicationDate,
       financingConditionDate: mortgageCases.financingConditionDate,
+      guaranteeDate: mortgageCases.guaranteeDate,
+      bankGuarantee: mortgageCases.bankGuarantee,
       passingDate: mortgageCases.passingDate,
       offerExpiryDate: mortgageCases.offerExpiryDate,
       feeProcessingDate: mortgageCases.feeProcessingDate,
@@ -312,12 +318,10 @@ export async function createMortgageCase(
         applicationDate: input.applicationDate,
         lenderId: input.lenderId,
         principalAmount: input.principalAmount,
-        lastCheckDate: input.lastCheckDate,
         financingConditionDate: input.financingConditionDate,
         bankGuarantee: input.bankGuarantee,
         guaranteeDate: input.guaranteeDate,
         passingDate: input.passingDate,
-        offerExpiryDate: input.offerExpiryDate,
         mortgageConfirmationDate: input.mortgageConfirmationDate,
         fee: input.fee,
         feeProcessingDate: input.feeProcessingDate,
@@ -363,12 +367,11 @@ export async function updateMortgageCase(
         applicationDate: input.applicationDate,
         lenderId: input.lenderId,
         principalAmount: input.principalAmount,
-        lastCheckDate: input.lastCheckDate,
+        // last_check_date / offer_expiry_date are form-hidden: leave existing DB values.
         financingConditionDate: input.financingConditionDate,
         bankGuarantee: input.bankGuarantee,
         guaranteeDate: input.guaranteeDate,
         passingDate: input.passingDate,
-        offerExpiryDate: input.offerExpiryDate,
         mortgageConfirmationDate: input.mortgageConfirmationDate,
         fee: input.fee,
         feeProcessingDate: input.feeProcessingDate,

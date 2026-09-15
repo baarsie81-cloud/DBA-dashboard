@@ -393,35 +393,19 @@ export function MortgageForm({
           </Field>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
-            label="Datum aanvraag"
-            htmlFor="applicationDate"
-            error={state.fieldErrors?.applicationDate}
-          >
-            <input
-              id="applicationDate"
-              name="applicationDate"
-              type="date"
-              defaultValue={dateForInput(initial?.applicationDate)}
-              className={fieldClass}
-            />
-          </Field>
-
-          <Field
-            label="Datum laatste controle"
-            htmlFor="lastCheckDate"
-            error={state.fieldErrors?.lastCheckDate}
-          >
-            <input
-              id="lastCheckDate"
-              name="lastCheckDate"
-              type="date"
-              defaultValue={dateForInput(initial?.lastCheckDate)}
-              className={fieldClass}
-            />
-          </Field>
-        </div>
+        <Field
+          label="Datum aanvraag"
+          htmlFor="applicationDate"
+          error={state.fieldErrors?.applicationDate}
+        >
+          <input
+            id="applicationDate"
+            name="applicationDate"
+            type="date"
+            defaultValue={dateForInput(initial?.applicationDate)}
+            className={fieldClass}
+          />
+        </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
@@ -452,20 +436,6 @@ export function MortgageForm({
             />
           </Field>
         </div>
-
-        <Field
-          label="Offerte vervaldatum"
-          htmlFor="offerExpiryDate"
-          error={state.fieldErrors?.offerExpiryDate}
-        >
-          <input
-            id="offerExpiryDate"
-            name="offerExpiryDate"
-            type="date"
-            defaultValue={dateForInput(initial?.offerExpiryDate)}
-            className={fieldClass}
-          />
-        </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field

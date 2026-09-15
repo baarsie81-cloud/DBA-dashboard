@@ -54,6 +54,8 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
     principal: principal != null && Number.isFinite(principal) ? principal : null,
     applicationDate: toIsoDate(row.applicationDate),
     conditionalDate: toIsoDate(row.financingConditionDate),
+    guaranteeDate: toIsoDate(row.guaranteeDate),
+    bankGuarantee: row.bankGuarantee,
     closingDate: toIsoDate(row.passingDate),
     offerExpiryDate: toIsoDate(row.offerExpiryDate),
     feeProcessingDate: toIsoDate(row.feeProcessingDate),
@@ -87,10 +89,6 @@ export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
     isWithinInclusiveRange(dossier.conditionalDate, today, until),
   ).length;
 
-  const offerSoon = dossiers.filter((dossier) =>
-    isWithinInclusiveRange(dossier.offerExpiryDate, today, until),
-  ).length;
-
   return [
     {
       id: "kpi-dossiers",
@@ -115,12 +113,6 @@ export function buildInBehandelingKpis(dossiers: MortgageDossier[]): KpiItem[] {
       value: String(financingSoon),
       label: "Ontbindende voorwaarden komende 14 dagen",
       icon: "clock",
-    },
-    {
-      id: "kpi-offer",
-      value: String(offerSoon),
-      label: "Offerte verloopt ≤14 dagen",
-      icon: "alert",
     },
   ];
 }
@@ -161,21 +153,10 @@ export function buildPhaseKpis(
         principal: "Totale hoofdsom geannuleerd",
       });
     case "afgehandeld": {
-      const unprocessed = dossiers.filter(
-        (dossier) => !dossier.feeProcessingDate,
-      ).length;
-      return [
-        ...buildCompactPhaseKpis(dossiers, {
-          count: "Aantal afgehandeld",
-          principal: "Totale hoofdsom afgehandeld",
-        }),
-        {
-          id: "kpi-fee-unprocessed",
-          value: String(unprocessed),
-          label: "Vergoeding nog te verwerken",
-          icon: "clock",
-        },
-      ];
+      return buildCompactPhaseKpis(dossiers, {
+        count: "Aantal afgehandeld",
+        principal: "Totale hoofdsom afgehandeld",
+      });
     }
     case "in_behandeling":
     default:
