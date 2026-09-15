@@ -50,6 +50,13 @@
       "when": 1789510000000,
       "tag": "0006_svn_passeren_dossierjaar",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789515000000,
+      "tag": "0007_lender_aliases",
+      "breakpoints": true
     }
   ]
 }
