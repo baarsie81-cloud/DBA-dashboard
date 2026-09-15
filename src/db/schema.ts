@@ -41,6 +41,12 @@ export const mortgageCases = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     customerName: text("customer_name").notNull(),
+    /** Structured Klant 1 name parts; backfilled from customer_name where parseable. */
+    customer1LastName: text("customer_1_last_name"),
+    customer1Initials: text("customer_1_initials"),
+    /** Structured Klant 2 / partner name parts; unused for legacy backfill. */
+    customer2LastName: text("customer_2_last_name"),
+    customer2Initials: text("customer_2_initials"),
     mortgageType: text("mortgage_type"),
     applicationDate: date("application_date"),
     lenderId: uuid("lender_id").references(() => lenders.id, {
