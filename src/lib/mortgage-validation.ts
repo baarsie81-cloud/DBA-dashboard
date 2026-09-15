@@ -5,6 +5,9 @@ import {
   cleanNamePart,
 } from "@/lib/customer-name";
 import { isDossierYear } from "@/lib/dossier-year";
+import { isAllowedBankGuaranteeValue } from "@/lib/bank-guarantee-options";
+import { parseFeeProcessingMonthInput } from "@/lib/fee-processing-month";
+import { isAllowedMortgageTypeValue } from "@/lib/mortgage-type-options";
 
 export const PHASE_OPTIONS: { value: DbMortgagePhase; label: string }[] = [
   { value: "prospect", label: "Prospect" },
@@ -141,7 +144,6 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     "offerExpiryDate",
     "guaranteeDate",
     "mortgageConfirmationDate",
-    "feeProcessingDate",
   ] as const;
 
   const dates: Record<(typeof dateFields)[number], string | null> = {
@@ -152,7 +154,6 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     offerExpiryDate: null,
     guaranteeDate: null,
     mortgageConfirmationDate: null,
-    feeProcessingDate: null,
   };
 
   for (const field of dateFields) {
@@ -165,6 +166,35 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       };
     }
     dates[field] = parsed.value;
+  }
+
+  const feeProcessing = parseFeeProcessingMonthInput(
+    emptyToNull(formData.get("feeProcessingDate")),
+  );
+  if (!feeProcessing.ok) {
+    return {
+      ok: false,
+      error: "Verwerking vergoeding is ongeldig.",
+      fieldErrors: { feeProcessingDate: "Kies een geldige maand." },
+    };
+  }
+
+  const mortgageType = emptyToNull(formData.get("mortgageType"));
+  if (!isAllowedMortgageTypeValue(mortgageType)) {
+    return {
+      ok: false,
+      error: "Soort hypotheek is ongeldig.",
+      fieldErrors: { mortgageType: "Kies een geldige optie." },
+    };
+  }
+
+  const bankGuarantee = emptyToNull(formData.get("bankGuarantee"));
+  if (!isAllowedBankGuaranteeValue(bankGuarantee)) {
+    return {
+      ok: false,
+      error: "BG / WBS is ongeldig.",
+      fieldErrors: { bankGuarantee: "Kies een geldige optie." },
+    };
   }
 
   const advisorIds = formData
@@ -181,19 +211,19 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       customer2LastName,
       customer2Initials,
       advisorIds: Array.from(new Set(advisorIds)),
-      mortgageType: emptyToNull(formData.get("mortgageType")),
+      mortgageType,
       applicationDate: dates.applicationDate,
       lenderId: emptyToNull(formData.get("lenderId")),
       principalAmount: principal.value,
       lastCheckDate: dates.lastCheckDate,
       financingConditionDate: dates.financingConditionDate,
-      bankGuarantee: emptyToNull(formData.get("bankGuarantee")),
+      bankGuarantee,
       guaranteeDate: dates.guaranteeDate,
       passingDate: dates.passingDate,
       offerExpiryDate: dates.offerExpiryDate,
       mortgageConfirmationDate: dates.mortgageConfirmationDate,
       fee: fee.value,
-      feeProcessingDate: dates.feeProcessingDate,
+      feeProcessingDate: feeProcessing.value,
       notes: emptyToNull(formData.get("notes")),
       svn,
       readyForPassing,

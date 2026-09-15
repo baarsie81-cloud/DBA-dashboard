@@ -112,6 +112,25 @@ export function parseExcelDate(
     return { ok: true, value: iso };
   }
 
+  // Month-only: YYYY-MM or MM-YYYY / MM/YYYY
+  const yearMonth = text.match(/^(\d{4})[./-](\d{1,2})$/);
+  if (yearMonth) {
+    const iso = `${yearMonth[1]}-${yearMonth[2].padStart(2, "0")}-01`;
+    if (Number.isNaN(new Date(`${iso}T00:00:00`).getTime())) {
+      return { ok: false, raw: text };
+    }
+    return { ok: true, value: iso };
+  }
+
+  const monthYear = text.match(/^(\d{1,2})[./-](\d{4})$/);
+  if (monthYear) {
+    const iso = `${monthYear[2]}-${monthYear[1].padStart(2, "0")}-01`;
+    if (Number.isNaN(new Date(`${iso}T00:00:00`).getTime())) {
+      return { ok: false, raw: text };
+    }
+    return { ok: true, value: iso };
+  }
+
   const match = text.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
   if (match) {
     const iso = `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
