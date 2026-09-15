@@ -32,6 +32,10 @@ export type MortgageCaseRow = {
 export type MortgageCaseDetail = {
   id: string;
   customerName: string;
+  customer1LastName: string | null;
+  customer1Initials: string | null;
+  customer2LastName: string | null;
+  customer2Initials: string | null;
   advisorIds: string[];
   mortgageType: string | null;
   applicationDate: string | Date | null;
@@ -221,6 +225,10 @@ export async function getMortgageCaseById(
     .select({
       id: mortgageCases.id,
       customerName: mortgageCases.customerName,
+      customer1LastName: mortgageCases.customer1LastName,
+      customer1Initials: mortgageCases.customer1Initials,
+      customer2LastName: mortgageCases.customer2LastName,
+      customer2Initials: mortgageCases.customer2Initials,
       mortgageType: mortgageCases.mortgageType,
       applicationDate: mortgageCases.applicationDate,
       lenderId: mortgageCases.lenderId,
