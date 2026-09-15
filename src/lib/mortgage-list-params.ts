@@ -12,6 +12,8 @@ export type MortgageSortField =
   | "application_date"
   | "passing_date"
   | "financing_condition_date"
+  | "guarantee_date"
+  | "bank_guarantee"
   | "offer_expiry_date"
   | "fee_processing_date";
 
@@ -40,6 +42,8 @@ const SORT_FIELDS = new Set<MortgageSortField>([
   "application_date",
   "passing_date",
   "financing_condition_date",
+  "guarantee_date",
+  "bank_guarantee",
   "offer_expiry_date",
   "fee_processing_date",
 ]);

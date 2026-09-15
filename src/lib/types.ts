@@ -19,6 +19,8 @@ export type MortgageDossier = {
   principal: number | null;
   applicationDate: string | null;
   conditionalDate: string | null;
+  guaranteeDate: string | null;
+  bankGuarantee: string | null;
   closingDate: string | null;
   offerExpiryDate: string | null;
   feeProcessingDate: string | null;

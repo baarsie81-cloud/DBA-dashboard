@@ -10,7 +10,7 @@ const sourceSans = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: "DBA Hypotheekdashboard",
-  description: "Intern hypotheekdossieroverzicht voor DBA Advies",
+  description: "Intern hypotheekdossieroverzicht voor DBA advies",
 };
 
 export default function RootLayout({

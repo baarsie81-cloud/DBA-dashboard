@@ -25,7 +25,7 @@ export function Logo({
           ? "focus-visible:ring-dba-lime/80 focus-visible:ring-offset-dba-dark-green"
           : "focus-visible:ring-dba-dark-green focus-visible:ring-offset-white"
       } ${className}`}
-      aria-label="DBA Advies"
+      aria-label="DBA advies"
     >
       <span
         className={`flex h-9 w-9 items-center justify-center rounded-md text-sm font-bold tracking-wide ${
@@ -43,7 +43,7 @@ export function Logo({
               isLight ? "text-white" : "text-dba-dark-green"
             }`}
           >
-            DBA Advies
+            DBA advies
           </span>
           {isLight ? (
             <span className="text-[11px] font-normal text-white/70">

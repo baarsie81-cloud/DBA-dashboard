@@ -138,20 +138,16 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
 
   const dateFields = [
     "applicationDate",
-    "lastCheckDate",
     "financingConditionDate",
     "passingDate",
-    "offerExpiryDate",
     "guaranteeDate",
     "mortgageConfirmationDate",
   ] as const;
 
   const dates: Record<(typeof dateFields)[number], string | null> = {
     applicationDate: null,
-    lastCheckDate: null,
     financingConditionDate: null,
     passingDate: null,
-    offerExpiryDate: null,
     guaranteeDate: null,
     mortgageConfirmationDate: null,
   };
@@ -215,12 +211,10 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       applicationDate: dates.applicationDate,
       lenderId: emptyToNull(formData.get("lenderId")),
       principalAmount: principal.value,
-      lastCheckDate: dates.lastCheckDate,
       financingConditionDate: dates.financingConditionDate,
       bankGuarantee,
       guaranteeDate: dates.guaranteeDate,
       passingDate: dates.passingDate,
-      offerExpiryDate: dates.offerExpiryDate,
       mortgageConfirmationDate: dates.mortgageConfirmationDate,
       fee: fee.value,
       feeProcessingDate: feeProcessing.value,
