@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 import type { AdvisorOption } from "@/db/queries/advisors";
 import type { LenderOption } from "@/db/queries/lenders";
+import { DOSSIER_YEAR_OPTIONS } from "@/lib/dossier-year";
 import { PHASE_OPTIONS } from "@/lib/mortgage-validation";
 import {
   buildOverviewHref,
@@ -13,16 +14,11 @@ import {
 } from "@/lib/overview-params";
 
 type OverviewFiltersProps = {
-  years: number[];
   advisors: AdvisorOption[];
   lenders: LenderOption[];
 };
 
-export function OverviewFilters({
-  years,
-  advisors,
-  lenders,
-}: OverviewFiltersProps) {
+export function OverviewFilters({ advisors, lenders }: OverviewFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -53,10 +49,10 @@ export function OverviewFilters({
         value={filters.year?.toString() ?? ""}
         onChange={(event) => pushParams({ year: event.target.value || null })}
         className="h-10 min-w-[150px] rounded-lg border border-dba-border bg-dba-background px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
-        aria-label="Filter op periode"
+        aria-label="Filter op dossierjaar"
       >
-        <option value="">Alle perioden</option>
-        {years.map((year) => (
+        <option value="">Alle jaren</option>
+        {DOSSIER_YEAR_OPTIONS.map((year) => (
           <option key={year} value={year}>
             {year}
           </option>

@@ -46,10 +46,9 @@ function toNumber(value: string | number | null | undefined): number {
 }
 
 /**
- * Year filter:
- * - afgehandeld → passing_date year
- * - other phases → application_date year
- * - null relevant date → excluded from a specific year, included in "all periods"
+ * Year filter uses administrative dossier_year only.
+ * - Specific year → mortgage_cases.dossier_year = year (null years excluded)
+ * - Alle jaren → no year clause (null + all years included)
  *
  * Advisor filter uses EXISTS on mortgage_case_advisors so shared dossiers
  * match without duplicating rows in organisation KPIs / lender stats.
@@ -75,62 +74,11 @@ function buildOverviewWhere(filters: OverviewFilters): SQL | undefined {
   }
 
   if (filters.year != null) {
-    const year = filters.year;
-    clauses.push(sql`(
-      (
-        ${mortgageCases.phase} = 'afgehandeld'
-        AND ${mortgageCases.passingDate} IS NOT NULL
-        AND EXTRACT(YEAR FROM ${mortgageCases.passingDate})::int = ${year}
-      )
-      OR
-      (
-        ${mortgageCases.phase} <> 'afgehandeld'
-        AND ${mortgageCases.applicationDate} IS NOT NULL
-        AND EXTRACT(YEAR FROM ${mortgageCases.applicationDate})::int = ${year}
-      )
-    )`);
+    clauses.push(eq(mortgageCases.dossierYear, filters.year));
   }
 
   if (clauses.length === 0) return undefined;
   return and(...clauses);
-}
-
-/** Distinct years available from application_date / passing_date. */
-export async function getOverviewYears(): Promise<number[]> {
-  const db = getDb();
-
-  const yearExpr = sql`(
-    CASE
-      WHEN ${mortgageCases.phase} = 'afgehandeld'
-        THEN EXTRACT(YEAR FROM ${mortgageCases.passingDate})::int
-      ELSE EXTRACT(YEAR FROM ${mortgageCases.applicationDate})::int
-    END
-  )`;
-
-  const rows = await db
-    .select({
-      year: sql<string>`${yearExpr}`.as("year"),
-    })
-    .from(mortgageCases)
-    .where(
-      sql`(
-        (
-          ${mortgageCases.phase} = 'afgehandeld'
-          AND ${mortgageCases.passingDate} IS NOT NULL
-        )
-        OR
-        (
-          ${mortgageCases.phase} <> 'afgehandeld'
-          AND ${mortgageCases.applicationDate} IS NOT NULL
-        )
-      )`,
-    )
-    .groupBy(yearExpr)
-    .orderBy(sql`${yearExpr} DESC`);
-
-  return rows
-    .map((row) => Number(row.year))
-    .filter((year) => Number.isFinite(year));
 }
 
 /** Organisation KPIs: each mortgage case counted once (no double-count on shared advisors). */

@@ -1,6 +1,6 @@
 import type { MortgagePhase } from "@/db/schema";
+import { isDossierYear } from "@/lib/dossier-year";
 import { isMortgagePhase } from "@/lib/mortgage-validation";
-import { todayIsoAmsterdam } from "@/lib/dates";
 
 export type OverviewFilters = {
   year: number | null;
@@ -8,6 +8,19 @@ export type OverviewFilters = {
   lenderId: string | null;
   phase: MortgagePhase | null;
 };
+
+/**
+ * Pure helper: does a dossier's dossier_year match the overview year filter?
+ * - Alle jaren (filterYear null) → always true (including null dossier years)
+ * - Specific year → only exact dossier_year match (null excluded)
+ */
+export function matchesOverviewDossierYear(
+  dossierYear: number | null,
+  filterYear: number | null,
+): boolean {
+  if (filterYear == null) return true;
+  return dossierYear === filterYear;
+}
 
 export function parseOverviewParams(
   params: URLSearchParams | Record<string, string | string[] | undefined>,
@@ -24,7 +37,7 @@ export function parseOverviewParams(
   const yearRaw = get("year");
   const yearNum = Number(yearRaw);
   const year =
-    yearRaw !== "" && Number.isInteger(yearNum) && yearNum >= 2000 && yearNum <= 2100
+    yearRaw !== "" && Number.isInteger(yearNum) && isDossierYear(yearNum)
       ? yearNum
       : null;
 
@@ -64,8 +77,4 @@ export function buildOverviewHref(
 
   const qs = next.toString();
   return qs ? `${pathname}?${qs}` : pathname;
-}
-
-export function currentAmsterdamYear(): number {
-  return Number(todayIsoAmsterdam().slice(0, 4));
 }
