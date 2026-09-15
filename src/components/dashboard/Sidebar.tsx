@@ -115,9 +115,6 @@ export function Sidebar() {
     <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 flex-col self-start bg-dba-dark-green text-white lg:flex">
       <div className="border-b border-white/10 px-5 py-5">
         <Logo variant="light" />
-        <p className="mt-3 text-[11px] leading-relaxed text-white/70">
-          Intern dossieroverzicht
-        </p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-5">
@@ -150,11 +147,10 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-white/10 px-4 py-4">
-        <p className="px-1 text-sm font-medium text-white/90">DBA advies</p>
         <form action={logoutAction}>
           <button
             type="submit"
-            className={`mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white ${focusRing}`}
+            className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[13px] text-white/70 transition-colors hover:bg-white/5 hover:text-white ${focusRing}`}
           >
             <LogOut className="h-4 w-4" strokeWidth={1.75} />
             Uitloggen
