@@ -17,6 +17,7 @@ export type MortgageDossier = {
   readyForPassing: boolean;
   dossierYear: number | null;
   principal: number | null;
+  fee: number | null;
   applicationDate: string | null;
   conditionalDate: string | null;
   guaranteeDate: string | null;

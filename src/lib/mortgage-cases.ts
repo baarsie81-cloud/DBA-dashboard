@@ -28,12 +28,13 @@ function toIsoDate(value: string | Date | null | undefined): string | null {
   return parsed.toISOString().slice(0, 10);
 }
 
-export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
-  const principal =
-    row.principalAmount == null || row.principalAmount === ""
-      ? null
-      : Number(row.principalAmount);
+function toAmount(value: string | null | undefined): number | null {
+  if (value == null || value === "") return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : null;
+}
 
+export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
   const names = resolveCustomerNameLines({
     customer1LastName: row.customer1LastName,
     customer1Initials: row.customer1Initials,
@@ -51,7 +52,8 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
     svn: row.svn,
     readyForPassing: row.readyForPassing,
     dossierYear: row.dossierYear,
-    principal: principal != null && Number.isFinite(principal) ? principal : null,
+    principal: toAmount(row.principalAmount),
+    fee: toAmount(row.fee),
     applicationDate: toIsoDate(row.applicationDate),
     conditionalDate: toIsoDate(row.financingConditionDate),
     guaranteeDate: toIsoDate(row.guaranteeDate),

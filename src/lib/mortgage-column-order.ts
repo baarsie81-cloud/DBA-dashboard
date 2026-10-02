@@ -6,6 +6,7 @@ export const MORTGAGE_COLUMN_KEYS = [
   "lender",
   "svn",
   "principal_amount",
+  "fee",
   "application_date",
   "financing_condition_date",
   "guarantee_date",
@@ -40,6 +41,7 @@ const COLUMN_INSERT_AFTER: Partial<
   Record<MortgageColumnKey, MortgageColumnKey>
 > = {
   svn: "lender",
+  fee: "principal_amount",
   guarantee_date: "financing_condition_date",
   bank_guarantee: "guarantee_date",
   ready_for_passing: "passing_date",
@@ -56,6 +58,7 @@ const LEGACY_KEY_MAP: Record<string, MortgageColumnKey> = {
   feeProcessingDate: "fee_processing_date",
   guaranteeDate: "guarantee_date",
   bankGuarantee: "bank_guarantee",
+  tarief: "fee",
 };
 
 export type MortgageColumnMeta = {
@@ -93,6 +96,12 @@ export const MORTGAGE_COLUMN_META: Record<
     label: "Hoofdsom",
     align: "right",
     sortField: "principal",
+  },
+  fee: {
+    key: "fee",
+    label: "Tarief",
+    align: "right",
+    sortField: "fee",
   },
   application_date: {
     key: "application_date",

@@ -23,6 +23,7 @@ export type MortgageCaseRow = {
   customer2LastName: string | null;
   customer2Initials: string | null;
   principalAmount: string | null;
+  fee: string | null;
   applicationDate: string | Date | null;
   financingConditionDate: string | Date | null;
   guaranteeDate: string | Date | null;
@@ -125,6 +126,8 @@ function buildOrderBy(
       return sql`${lenders.name} ${sql.raw(dir)} NULLS LAST`;
     case "principal":
       return sql`${mortgageCases.principalAmount} ${sql.raw(dir)} NULLS LAST`;
+    case "fee":
+      return sql`${mortgageCases.fee} ${sql.raw(dir)} NULLS LAST`;
     case "application_date":
       return sql`${mortgageCases.applicationDate} ${sql.raw(dir)} NULLS LAST`;
     case "financing_condition_date":
@@ -236,6 +239,7 @@ export async function getMortgageCasesByPhase(
       customer2LastName: mortgageCases.customer2LastName,
       customer2Initials: mortgageCases.customer2Initials,
       principalAmount: mortgageCases.principalAmount,
+      fee: mortgageCases.fee,
       applicationDate: mortgageCases.applicationDate,
       financingConditionDate: mortgageCases.financingConditionDate,
       guaranteeDate: mortgageCases.guaranteeDate,
