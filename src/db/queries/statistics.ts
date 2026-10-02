@@ -13,6 +13,12 @@ export type OverviewKpis = {
   inProgressPrincipal: number;
   completedCount: number;
   completedPrincipal: number;
+  /** Sum of fee for in_behandeling (null fees ignored). One row per case. */
+  inProgressFee: number;
+  /** Sum of fee for afgehandeld (null fees ignored). One row per case. */
+  completedFee: number;
+  /** Sum of fee for all filtered cases (null fees ignored). One row per case. */
+  totalFee: number;
 };
 
 export type AdvisorStatsRow = {
@@ -25,6 +31,10 @@ export type AdvisorStatsRow = {
   principalInProgress: number;
   principalCompleted: number;
   principalTotal: number;
+  /** Shared dossiers count fully for each linked advisor. */
+  feeInProgress: number;
+  feeCompleted: number;
+  feeTotal: number;
 };
 
 export type LenderStatsRow = {
@@ -37,6 +47,10 @@ export type LenderStatsRow = {
   principalTotal: number;
   principalCompleted: number;
   averagePrincipal: number;
+  feeTotal: number;
+  feeCompleted: number;
+  /** Average of non-null fee values only. */
+  averageFee: number;
 };
 
 function toNumber(value: string | number | null | undefined): number {
@@ -94,6 +108,9 @@ export async function getOverviewKpis(
       inProgressPrincipal: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'in_behandeling' then ${mortgageCases.principalAmount}::numeric else 0 end), 0)`,
       completedCount: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then 1 else 0 end), 0)`,
       completedPrincipal: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.principalAmount}::numeric else 0 end), 0)`,
+      inProgressFee: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'in_behandeling' then ${mortgageCases.fee}::numeric else 0 end), 0)`,
+      completedFee: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.fee}::numeric else 0 end), 0)`,
+      totalFee: sql<string>`coalesce(sum(${mortgageCases.fee}::numeric), 0)`,
     })
     .from(mortgageCases)
     .where(where);
@@ -104,6 +121,9 @@ export async function getOverviewKpis(
     inProgressPrincipal: toNumber(row?.inProgressPrincipal),
     completedCount: toNumber(row?.completedCount),
     completedPrincipal: toNumber(row?.completedPrincipal),
+    inProgressFee: toNumber(row?.inProgressFee),
+    completedFee: toNumber(row?.completedFee),
+    totalFee: toNumber(row?.totalFee),
   };
 }
 
@@ -111,6 +131,7 @@ export async function getOverviewKpis(
  * Per-advisor stats via mortgage_case_advisors.
  * A shared dossier counts fully for each linked advisor (no 50/50 split).
  * Cases without advisors appear as "Geen adviseur".
+ * Do not sum these fee totals to derive organisation omzet.
  */
 export async function getAdvisorStatistics(
   filters: OverviewFilters,
@@ -129,6 +150,9 @@ export async function getAdvisorStatistics(
       principalInProgress: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'in_behandeling' then ${mortgageCases.principalAmount}::numeric else 0 end), 0)`,
       principalCompleted: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.principalAmount}::numeric else 0 end), 0)`,
       principalTotal: sql<string>`coalesce(sum(${mortgageCases.principalAmount}::numeric), 0)`,
+      feeInProgress: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'in_behandeling' then ${mortgageCases.fee}::numeric else 0 end), 0)`,
+      feeCompleted: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.fee}::numeric else 0 end), 0)`,
+      feeTotal: sql<string>`coalesce(sum(${mortgageCases.fee}::numeric), 0)`,
     })
     .from(mortgageCases)
     .leftJoin(
@@ -154,6 +178,9 @@ export async function getAdvisorStatistics(
     principalInProgress: toNumber(row.principalInProgress),
     principalCompleted: toNumber(row.principalCompleted),
     principalTotal: toNumber(row.principalTotal),
+    feeInProgress: toNumber(row.feeInProgress),
+    feeCompleted: toNumber(row.feeCompleted),
+    feeTotal: toNumber(row.feeTotal),
   }));
 }
 
@@ -175,6 +202,9 @@ export async function getLenderStatistics(
       principalTotal: sql<string>`coalesce(sum(${mortgageCases.principalAmount}::numeric), 0)`,
       principalCompleted: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.principalAmount}::numeric else 0 end), 0)`,
       averagePrincipal: sql<string>`coalesce(avg(${mortgageCases.principalAmount}::numeric), 0)`,
+      feeTotal: sql<string>`coalesce(sum(${mortgageCases.fee}::numeric), 0)`,
+      feeCompleted: sql<string>`coalesce(sum(case when ${mortgageCases.phase} = 'afgehandeld' then ${mortgageCases.fee}::numeric else 0 end), 0)`,
+      averageFee: sql<string>`coalesce(avg(${mortgageCases.fee}::numeric), 0)`,
     })
     .from(mortgageCases)
     .leftJoin(lenders, eq(mortgageCases.lenderId, lenders.id))
@@ -195,5 +225,8 @@ export async function getLenderStatistics(
     principalTotal: toNumber(row.principalTotal),
     principalCompleted: toNumber(row.principalCompleted),
     averagePrincipal: Math.round(toNumber(row.averagePrincipal)),
+    feeTotal: toNumber(row.feeTotal),
+    feeCompleted: toNumber(row.feeCompleted),
+    averageFee: Math.round(toNumber(row.averageFee)),
   }));
 }

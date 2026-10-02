@@ -30,10 +30,12 @@ export function OverviewTables({
           </h2>
           <p className="mt-0.5 text-[12.5px] text-dba-muted">
             Productie en pipeline per adviseur binnen de gekozen filters.
+            Gezamenlijke dossiers tellen volledig mee bij elke gekoppelde
+            adviseur.
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-sm">
+          <table className="w-full min-w-[1200px] border-collapse text-sm">
             <thead className="border-b border-dba-border bg-[#fafbfa]">
               <tr>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
@@ -60,12 +62,21 @@ export function OverviewTables({
                 <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
                   Totale hoofdsom
                 </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+                  Omzet in behandeling
+                </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+                  Afgehandelde omzet
+                </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+                  Totale omzet betrokken dossiers
+                </th>
               </tr>
             </thead>
             <tbody>
               {advisorRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8}>
+                  <td colSpan={11}>
                     <EmptyState />
                   </td>
                 </tr>
@@ -99,6 +110,15 @@ export function OverviewTables({
                     <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums text-dba-charcoal">
                       {formatCurrency(row.principalTotal)}
                     </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums text-dba-charcoal">
+                      {formatCurrency(row.feeInProgress)}
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums text-dba-charcoal">
+                      {formatCurrency(row.feeCompleted)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums text-dba-charcoal">
+                      {formatCurrency(row.feeTotal)}
+                    </td>
                   </tr>
                 ))
               )}
@@ -113,11 +133,12 @@ export function OverviewTables({
             Per geldverstrekker
           </h2>
           <p className="mt-0.5 text-[12.5px] text-dba-muted">
-            Volume en plaatsingen per geldverstrekker binnen de gekozen filters.
+            Volume, plaatsingen en omzet per geldverstrekker binnen de gekozen
+            filters.
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-sm">
+          <table className="w-full min-w-[1200px] border-collapse text-sm">
             <thead className="border-b border-dba-border bg-[#fafbfa]">
               <tr>
                 <th className="px-4 py-3 text-left text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
@@ -144,12 +165,21 @@ export function OverviewTables({
                 <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
                   Gem. hoofdsom
                 </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+                  Totale omzet
+                </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+                  Afgehandelde omzet
+                </th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+                  Gemiddeld tarief
+                </th>
               </tr>
             </thead>
             <tbody>
               {lenderRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8}>
+                  <td colSpan={11}>
                     <EmptyState />
                   </td>
                 </tr>
@@ -182,6 +212,15 @@ export function OverviewTables({
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums text-dba-charcoal">
                       {formatCurrency(row.averagePrincipal)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums text-dba-charcoal">
+                      {formatCurrency(row.feeTotal)}
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums text-dba-charcoal">
+                      {formatCurrency(row.feeCompleted)}
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums text-dba-charcoal">
+                      {formatCurrency(row.averageFee)}
                     </td>
                   </tr>
                 ))

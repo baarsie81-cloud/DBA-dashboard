@@ -9,6 +9,7 @@ export type MortgageSortField =
   | "advisor"
   | "lender"
   | "principal"
+  | "fee"
   | "application_date"
   | "passing_date"
   | "financing_condition_date"
@@ -39,6 +40,7 @@ const SORT_FIELDS = new Set<MortgageSortField>([
   "advisor",
   "lender",
   "principal",
+  "fee",
   "application_date",
   "passing_date",
   "financing_condition_date",

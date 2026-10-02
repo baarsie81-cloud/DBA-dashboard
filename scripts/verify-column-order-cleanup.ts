@@ -27,11 +27,16 @@ assert(!normalized.includes("actions" as never), "actions removed");
 assert(normalized.includes("guarantee_date"), "guarantee_date added");
 assert(normalized.includes("bank_guarantee"), "bank_guarantee added");
 assert(normalized.includes("svn"), "svn kept/added");
+assert(normalized.includes("fee"), "fee/tarief added");
 
 const finIdx = normalized.indexOf("financing_condition_date");
 const gIdx = normalized.indexOf("guarantee_date");
 const bIdx = normalized.indexOf("bank_guarantee");
 assert(gIdx === finIdx + 1, "guarantee_date after ontbindende");
 assert(bIdx === gIdx + 1, "bank_guarantee after guarantee_date");
+
+const principalIdx = normalized.indexOf("principal_amount");
+const feeIdx = normalized.indexOf("fee");
+assert(feeIdx === principalIdx + 1, "fee after principal_amount");
 
 console.log("OK:", normalized.join(" → "));

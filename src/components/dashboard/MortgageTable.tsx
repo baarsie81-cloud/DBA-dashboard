@@ -255,6 +255,15 @@ function renderColumnCell(
           {formatCurrency(dossier.principal)}
         </td>
       );
+    case "fee":
+      return (
+        <td
+          key={columnKey}
+          className="px-4 py-3.5 text-right whitespace-nowrap tabular-nums text-dba-charcoal"
+        >
+          {formatCurrency(dossier.fee)}
+        </td>
+      );
     case "application_date":
       return (
         <td

@@ -36,7 +36,7 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
     getLenderStatistics(filters),
   ]);
 
-  const kpiItems: KpiItem[] = [
+  const volumeKpis: KpiItem[] = [
     {
       id: "kpi-in-progress",
       value: String(kpis.inProgressCount),
@@ -63,6 +63,27 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
     },
   ];
 
+  const revenueKpis: KpiItem[] = [
+    {
+      id: "kpi-fee-in-progress",
+      value: formatCurrency(kpis.inProgressFee),
+      label: "Omzet in behandeling",
+      icon: "euro",
+    },
+    {
+      id: "kpi-fee-completed",
+      value: formatCurrency(kpis.completedFee),
+      label: "Afgehandelde omzet",
+      icon: "euro",
+    },
+    {
+      id: "kpi-fee-total",
+      value: formatCurrency(kpis.totalFee),
+      label: "Totale omzet",
+      icon: "euro",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <DashboardHeader
@@ -76,9 +97,20 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
       </Suspense>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {kpiItems.map((item) => (
+        {volumeKpis.map((item) => (
           <KpiCard key={item.id} item={item} />
         ))}
+      </div>
+
+      <div>
+        <p className="mb-2 text-[11px] font-semibold tracking-wide text-dba-muted uppercase">
+          Omzet (tarief)
+        </p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {revenueKpis.map((item) => (
+            <KpiCard key={item.id} item={item} />
+          ))}
+        </div>
       </div>
 
       <OverviewTables advisorRows={advisorRows} lenderRows={lenderRows} />
