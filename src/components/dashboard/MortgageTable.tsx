@@ -59,6 +59,22 @@ type MortgageTableProps = {
   onPhaseChange?: (id: string, phase: DbMortgagePhase) => Promise<void> | void;
 };
 
+/** Narrow columns with little content — keep horizontal padding tight. */
+const COMPACT_COLUMN_KEYS = new Set<MortgageColumnKey>([
+  "svn",
+  "ready_for_passing",
+  "bank_guarantee",
+  "phase",
+]);
+
+function columnCellClass(
+  columnKey: MortgageColumnKey,
+  extra = "",
+): string {
+  const pad = COMPACT_COLUMN_KEYS.has(columnKey) ? "px-2" : "px-3";
+  return `${pad} py-3 ${extra}`.trim();
+}
+
 function phaseValueFromLabel(label: string): DbMortgagePhase {
   return (
     PHASE_OPTIONS.find((option) => option.label === label)?.value ??
@@ -140,36 +156,38 @@ function ColumnHeader({
       ? ArrowUp
       : ArrowDown;
 
+  const pad = COMPACT_COLUMN_KEYS.has(columnKey) ? "px-2" : "px-3";
+
   return (
     <th
       ref={setNodeRef}
       style={style}
-      className={`px-4 py-3 text-[11px] font-semibold tracking-wide text-dba-muted uppercase ${
+      className={`${pad} py-2.5 text-[11px] font-semibold tracking-wide text-dba-muted uppercase ${
         meta.align === "right" ? "text-right" : "text-left"
       } ${isDragging ? "relative z-10 bg-[#f3f5f3] opacity-90 shadow-sm" : ""}`}
     >
       <div
-        className={`inline-flex items-center gap-1 ${
+        className={`inline-flex items-center gap-0.5 ${
           meta.align === "right" ? "justify-end" : ""
         }`}
       >
         <button
           type="button"
-          className="inline-flex h-5 w-5 shrink-0 cursor-grab items-center justify-center rounded text-dba-border-strong transition-colors hover:bg-dba-background hover:text-dba-muted active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
+          className="inline-flex h-4 w-4 shrink-0 cursor-grab items-center justify-center rounded text-dba-border-strong transition-colors hover:bg-dba-background hover:text-dba-muted active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
           aria-label={`Versleep kolom ${meta.label}`}
           title="Kolom verplaatsen"
           {...attributes}
           {...listeners}
           onClick={(event) => event.stopPropagation()}
         >
-          <GripVertical className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <GripVertical className="h-3 w-3" strokeWidth={1.75} />
         </button>
 
         {sortField ? (
           <button
             type="button"
             onClick={() => onSort(sortField)}
-            className={`inline-flex items-center gap-1.5 rounded-md transition-colors hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1 ${
+            className={`inline-flex items-center gap-1 rounded-md transition-colors hover:text-dba-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1 ${
               isActive ? "text-dba-charcoal" : ""
             }`}
             aria-label={`Sorteer op ${meta.label}`}
@@ -199,7 +217,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 font-medium whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "font-medium whitespace-nowrap text-dba-charcoal",
+          )}
         >
           <div className="flex flex-col gap-0.5">
             <span>{dossier.clientName}</span>
@@ -215,7 +236,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap text-dba-charcoal",
+          )}
         >
           {displayText(dossier.advisor)}
         </td>
@@ -224,7 +248,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap text-dba-charcoal",
+          )}
         >
           {displayText(dossier.lender)}
         </td>
@@ -233,7 +260,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "w-px whitespace-nowrap text-dba-charcoal",
+          )}
         >
           {dossier.svn ? (
             <Check
@@ -250,7 +280,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 text-right font-medium whitespace-nowrap tabular-nums text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "text-right font-medium whitespace-nowrap tabular-nums text-dba-charcoal",
+          )}
         >
           {formatCurrency(dossier.principal)}
         </td>
@@ -259,7 +292,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 text-right whitespace-nowrap tabular-nums text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "text-right whitespace-nowrap tabular-nums text-dba-charcoal",
+          )}
         >
           {formatCurrency(dossier.fee)}
         </td>
@@ -268,7 +304,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap tabular-nums text-dba-charcoal",
+          )}
         >
           {formatDateNl(dossier.applicationDate)}
         </td>
@@ -277,7 +316,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap tabular-nums text-dba-charcoal",
+          )}
         >
           {formatDateNl(dossier.conditionalDate)}
         </td>
@@ -286,7 +328,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap tabular-nums text-dba-charcoal",
+          )}
         >
           {formatDateNl(dossier.guaranteeDate)}
         </td>
@@ -295,7 +340,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap text-dba-charcoal",
+          )}
         >
           {displayText(dossier.bankGuarantee)}
         </td>
@@ -304,7 +352,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap tabular-nums text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap tabular-nums text-dba-charcoal",
+          )}
         >
           {formatDateNl(dossier.closingDate)}
         </td>
@@ -313,7 +364,10 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "w-px whitespace-nowrap text-dba-charcoal",
+          )}
         >
           {dossier.readyForPassing ? (
             <Check
@@ -330,14 +384,20 @@ function renderColumnCell(
       return (
         <td
           key={columnKey}
-          className="px-4 py-3.5 whitespace-nowrap text-dba-charcoal"
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap text-dba-charcoal",
+          )}
         >
           {formatFeeProcessingMonth(dossier.feeProcessingDate)}
         </td>
       );
     case "phase":
       return (
-        <td key={columnKey} className="px-4 py-3.5 whitespace-nowrap">
+        <td
+          key={columnKey}
+          className={columnCellClass(columnKey, "whitespace-nowrap")}
+        >
           <PhaseSelect
             dossierId={dossier.id}
             phaseLabel={dossier.phase}
@@ -490,7 +550,7 @@ export function MortgageTable({
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <table className="w-full min-w-[1100px] border-collapse text-sm">
+          <table className="w-full min-w-[960px] table-auto border-collapse text-sm">
             <thead className="border-b border-dba-border bg-[#fafbfa]">
               <tr>
                 <SortableContext
