@@ -126,9 +126,9 @@ function BankGuaranteeFields({
               disabled={!hasType}
               onChange={(event) => setSettled(event.target.checked)}
               className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green disabled:opacity-40"
-              aria-label="Ingediend of geregeld"
+              aria-label="Geregeld"
             />
-            <span>Ingediend/geregeld</span>
+            <span>Geregeld</span>
           </label>
         </div>
         {fieldErrors?.bankGuarantee ? (
@@ -139,7 +139,7 @@ function BankGuaranteeFields({
       </div>
 
       <Field
-        label="Datum bankgarantie / waarborgsom"
+        label="Datum BG/WB"
         htmlFor="guaranteeDate"
         error={fieldErrors?.guaranteeDate}
       >
