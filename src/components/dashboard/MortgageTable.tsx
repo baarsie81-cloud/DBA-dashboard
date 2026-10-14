@@ -27,6 +27,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import type { MortgagePhase as DbMortgagePhase } from "@/db/schema";
+import { formatBankGuaranteeCompact } from "@/lib/bank-guarantee-options";
 import { displayText, formatCurrency, formatDateNl } from "@/lib/format";
 import { formatFeeProcessingMonth } from "@/lib/fee-processing-month";
 import {
@@ -342,10 +343,11 @@ function renderColumnCell(
           key={columnKey}
           className={columnCellClass(
             columnKey,
-            "whitespace-nowrap text-dba-charcoal",
+            "w-px whitespace-nowrap tabular-nums text-dba-charcoal",
           )}
+          title={dossier.bankGuarantee ?? undefined}
         >
-          {displayText(dossier.bankGuarantee)}
+          {formatBankGuaranteeCompact(dossier.bankGuarantee)}
         </td>
       );
     case "passing_date":

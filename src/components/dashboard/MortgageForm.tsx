@@ -18,7 +18,7 @@ import {
 } from "@/lib/mortgage-validation";
 import { resolveKlant1FormDefaults } from "@/lib/customer-name";
 import { DOSSIER_YEAR_OPTIONS } from "@/lib/dossier-year";
-import { bankGuaranteeSelectOptions } from "@/lib/bank-guarantee-options";
+import { parseBankGuaranteeUi } from "@/lib/bank-guarantee-options";
 import {
   feeProcessingMonthSelectOptions,
   feeProcessingMonthValue,
@@ -62,6 +62,95 @@ function Field({
       </label>
       {children}
       {error ? <p className="mt-1 text-[12px] text-red-700">{error}</p> : null}
+    </div>
+  );
+}
+
+function BankGuaranteeFields({
+  initialValue,
+  guaranteeDate,
+  fieldErrors,
+}: {
+  initialValue: string | null | undefined;
+  guaranteeDate: string | Date | null | undefined;
+  fieldErrors?: Record<string, string>;
+}) {
+  const parsed = parseBankGuaranteeUi(initialValue);
+  const [type, setType] = useState(parsed.type ?? "");
+  const [settled, setSettled] = useState(parsed.settled);
+  const hasType = type === "BG" || type === "WB";
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <p className={labelClass}>BG / WB</p>
+        {parsed.legacy ? (
+          <>
+            <input
+              type="hidden"
+              name="bankGuaranteeLegacy"
+              value={parsed.legacy}
+            />
+            <p className="mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+              Bestaande waarde:{" "}
+              <span className="font-medium">{parsed.legacy}</span>. Kies BG of
+              WB om te wijzigen; anders blijft deze waarde behouden.
+            </p>
+          </>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            id="bankGuaranteeType"
+            name="bankGuaranteeType"
+            value={type}
+            onChange={(event) => {
+              const next = event.target.value;
+              setType(next);
+              if (next !== "BG" && next !== "WB") {
+                setSettled(false);
+              }
+            }}
+            className={`${fieldClass} max-w-[120px]`}
+            aria-label="BG of WB"
+          >
+            <option value="">—</option>
+            <option value="BG">BG</option>
+            <option value="WB">WB</option>
+          </select>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-dba-charcoal">
+            <input
+              type="checkbox"
+              name="bankGuaranteeSettled"
+              value="true"
+              checked={settled}
+              disabled={!hasType}
+              onChange={(event) => setSettled(event.target.checked)}
+              className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green disabled:opacity-40"
+              aria-label="Ingediend of geregeld"
+            />
+            <span>Ingediend/geregeld</span>
+          </label>
+        </div>
+        {fieldErrors?.bankGuarantee ? (
+          <p className="mt-1 text-[12px] text-red-700">
+            {fieldErrors.bankGuarantee}
+          </p>
+        ) : null}
+      </div>
+
+      <Field
+        label="Datum bankgarantie / waarborgsom"
+        htmlFor="guaranteeDate"
+        error={fieldErrors?.guaranteeDate}
+      >
+        <input
+          id="guaranteeDate"
+          name="guaranteeDate"
+          type="date"
+          defaultValue={dateForInput(guaranteeDate)}
+          className={fieldClass}
+        />
+      </Field>
     </div>
   );
 }
@@ -437,43 +526,11 @@ export function MortgageForm({
           </Field>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
-            label="BG / WBS"
-            htmlFor="bankGuarantee"
-            error={state.fieldErrors?.bankGuarantee}
-          >
-            <select
-              id="bankGuarantee"
-              name="bankGuarantee"
-              defaultValue={initial?.bankGuarantee ?? ""}
-              className={fieldClass}
-            >
-              <option value="">—</option>
-              {bankGuaranteeSelectOptions(initial?.bankGuarantee).map(
-                (option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ),
-              )}
-            </select>
-          </Field>
-
-          <Field
-            label="Datum bankgarantie / waarborgsom"
-            htmlFor="guaranteeDate"
-            error={state.fieldErrors?.guaranteeDate}
-          >
-            <input
-              id="guaranteeDate"
-              name="guaranteeDate"
-              type="date"
-              defaultValue={dateForInput(initial?.guaranteeDate)}
-              className={fieldClass}
-            />
-          </Field>
-        </div>
+        <BankGuaranteeFields
+          initialValue={initial?.bankGuarantee}
+          guaranteeDate={initial?.guaranteeDate}
+          fieldErrors={state.fieldErrors}
+        />
 
         <Field
           label="Datum bevestiging hypotheek"

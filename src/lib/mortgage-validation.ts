@@ -5,7 +5,7 @@ import {
   cleanNamePart,
 } from "@/lib/customer-name";
 import { isDossierYear } from "@/lib/dossier-year";
-import { isAllowedBankGuaranteeValue } from "@/lib/bank-guarantee-options";
+import { bankGuaranteeFromFormFields } from "@/lib/bank-guarantee-options";
 import { parseFeeProcessingMonthInput } from "@/lib/fee-processing-month";
 import { isAllowedMortgageTypeValue } from "@/lib/mortgage-type-options";
 
@@ -184,14 +184,21 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
     };
   }
 
-  const bankGuarantee = emptyToNull(formData.get("bankGuarantee"));
-  if (!isAllowedBankGuaranteeValue(bankGuarantee)) {
+  const bankGuaranteeResult = bankGuaranteeFromFormFields({
+    typeRaw: emptyToNull(formData.get("bankGuaranteeType")),
+    settled:
+      formData.get("bankGuaranteeSettled") === "true" ||
+      formData.get("bankGuaranteeSettled") === "on",
+    legacyRaw: emptyToNull(formData.get("bankGuaranteeLegacy")),
+  });
+  if (!bankGuaranteeResult.ok) {
     return {
       ok: false,
-      error: "BG / WBS is ongeldig.",
-      fieldErrors: { bankGuarantee: "Kies een geldige optie." },
+      error: "BG / WB is ongeldig.",
+      fieldErrors: { bankGuarantee: bankGuaranteeResult.error },
     };
   }
+  const bankGuarantee = bankGuaranteeResult.value;
 
   const advisorIds = formData
     .getAll("advisorIds")

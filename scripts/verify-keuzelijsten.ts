@@ -40,8 +40,16 @@ assert(
   "exact BG map",
 );
 assert(
+  normalizeBankGuaranteeFromExcel("BG gesteld") === "Bankgarantie geregeld",
+  "compact BG alias",
+);
+assert(
   normalizeBankGuaranteeFromExcel("Aangevraagd") === "Aangevraagd",
   "unknown BG kept",
+);
+assert(
+  normalizeBankGuaranteeFromExcel("gesteld") === "gesteld",
+  "ambiguous BG kept",
 );
 
 const excelDay = parseExcelDate("15-09-2026");

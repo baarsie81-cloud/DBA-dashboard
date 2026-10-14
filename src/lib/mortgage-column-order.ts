@@ -120,7 +120,7 @@ export const MORTGAGE_COLUMN_META: Record<
   },
   bank_guarantee: {
     key: "bank_guarantee",
-    label: "BG / WBS",
+    label: "BG / WB",
     sortField: "bank_guarantee",
   },
   passing_date: {
