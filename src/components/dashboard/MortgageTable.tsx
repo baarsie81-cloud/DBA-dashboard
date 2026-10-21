@@ -233,6 +233,18 @@ function renderColumnCell(
           </div>
         </td>
       );
+    case "invoice_number":
+      return (
+        <td
+          key={columnKey}
+          className={columnCellClass(
+            columnKey,
+            "whitespace-nowrap text-dba-charcoal",
+          )}
+        >
+          {displayText(dossier.invoiceNumber)}
+        </td>
+      );
     case "advisor":
       return (
         <td

@@ -11,6 +11,7 @@ export type MortgageDossier = {
   clientName: string;
   /** Optional second line for Klant 2 / partner. */
   clientNameSecondary: string | null;
+  invoiceNumber: string | null;
   advisor: string | null;
   lender: string | null;
   svn: boolean;

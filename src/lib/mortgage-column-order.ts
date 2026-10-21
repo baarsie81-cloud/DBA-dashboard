@@ -2,6 +2,7 @@ import type { MortgageSortField } from "@/lib/mortgage-list-params";
 
 export const MORTGAGE_COLUMN_KEYS = [
   "customer_name",
+  "invoice_number",
   "advisor",
   "lender",
   "svn",
@@ -40,6 +41,7 @@ const REMOVED_COLUMN_KEYS = new Set([
 const COLUMN_INSERT_AFTER: Partial<
   Record<MortgageColumnKey, MortgageColumnKey>
 > = {
+  invoice_number: "customer_name",
   svn: "lender",
   fee: "principal_amount",
   guarantee_date: "financing_condition_date",
@@ -59,6 +61,8 @@ const LEGACY_KEY_MAP: Record<string, MortgageColumnKey> = {
   guaranteeDate: "guarantee_date",
   bankGuarantee: "bank_guarantee",
   tarief: "fee",
+  invoiceNumber: "invoice_number",
+  factuurnummer: "invoice_number",
 };
 
 export type MortgageColumnMeta = {
@@ -76,6 +80,10 @@ export const MORTGAGE_COLUMN_META: Record<
     key: "customer_name",
     label: "Klantnaam",
     sortField: "customer_name",
+  },
+  invoice_number: {
+    key: "invoice_number",
+    label: "Factuurnummer",
   },
   advisor: {
     key: "advisor",

@@ -62,6 +62,8 @@ export const mortgageCases = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     customerName: text("customer_name").notNull(),
+    /** Optional manual invoice number entered by staff. */
+    invoiceNumber: text("invoice_number"),
     /** Structured Klant 1 name parts; backfilled from customer_name where parseable. */
     customer1LastName: text("customer_1_last_name"),
     customer1Initials: text("customer_1_initials"),

@@ -22,6 +22,7 @@ export type MortgageCaseRow = {
   customer1Initials: string | null;
   customer2LastName: string | null;
   customer2Initials: string | null;
+  invoiceNumber: string | null;
   principalAmount: string | null;
   fee: string | null;
   applicationDate: string | Date | null;
@@ -46,6 +47,7 @@ export type MortgageCaseDetail = {
   customer1Initials: string | null;
   customer2LastName: string | null;
   customer2Initials: string | null;
+  invoiceNumber: string | null;
   advisorIds: string[];
   mortgageType: string | null;
   applicationDate: string | Date | null;
@@ -73,6 +75,7 @@ export type MortgageCaseWriteInput = {
   customer1Initials: string | null;
   customer2LastName: string | null;
   customer2Initials: string | null;
+  invoiceNumber: string | null;
   advisorIds: string[];
   mortgageType: string | null;
   applicationDate: string | null;
@@ -238,6 +241,7 @@ export async function getMortgageCasesByPhase(
       customer1Initials: mortgageCases.customer1Initials,
       customer2LastName: mortgageCases.customer2LastName,
       customer2Initials: mortgageCases.customer2Initials,
+      invoiceNumber: mortgageCases.invoiceNumber,
       principalAmount: mortgageCases.principalAmount,
       fee: mortgageCases.fee,
       applicationDate: mortgageCases.applicationDate,
@@ -272,6 +276,7 @@ export async function getMortgageCaseById(
       customer1Initials: mortgageCases.customer1Initials,
       customer2LastName: mortgageCases.customer2LastName,
       customer2Initials: mortgageCases.customer2Initials,
+      invoiceNumber: mortgageCases.invoiceNumber,
       mortgageType: mortgageCases.mortgageType,
       applicationDate: mortgageCases.applicationDate,
       lenderId: mortgageCases.lenderId,
@@ -318,6 +323,7 @@ export async function createMortgageCase(
         customer1Initials: input.customer1Initials,
         customer2LastName: input.customer2LastName,
         customer2Initials: input.customer2Initials,
+        invoiceNumber: input.invoiceNumber,
         mortgageType: input.mortgageType,
         applicationDate: input.applicationDate,
         lenderId: input.lenderId,
@@ -367,6 +373,7 @@ export async function updateMortgageCase(
         customer1Initials: input.customer1Initials,
         customer2LastName: input.customer2LastName,
         customer2Initials: input.customer2Initials,
+        invoiceNumber: input.invoiceNumber,
         mortgageType: input.mortgageType,
         applicationDate: input.applicationDate,
         lenderId: input.lenderId,

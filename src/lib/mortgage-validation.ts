@@ -213,6 +213,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       customer1Initials,
       customer2LastName,
       customer2Initials,
+      invoiceNumber: emptyToNull(formData.get("invoiceNumber")),
       advisorIds: Array.from(new Set(advisorIds)),
       mortgageType,
       applicationDate: dates.applicationDate,

@@ -47,6 +47,7 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
     id: row.id,
     clientName: names.primary,
     clientNameSecondary: names.secondary,
+    invoiceNumber: row.invoiceNumber?.trim() || null,
     advisor: row.advisorName,
     lender: row.lenderName,
     svn: row.svn,

@@ -295,6 +295,22 @@ export function MortgageForm({
           </div>
         </div>
 
+        <Field
+          label="Factuurnummer"
+          htmlFor="invoiceNumber"
+          error={state.fieldErrors?.invoiceNumber}
+        >
+          <input
+            id="invoiceNumber"
+            name="invoiceNumber"
+            type="text"
+            defaultValue={initial?.invoiceNumber ?? ""}
+            className={fieldClass}
+            autoComplete="off"
+            placeholder="Optioneel"
+          />
+        </Field>
+
         <Field label="Adviseurs" htmlFor="advisorIds">
           <div
             id="advisorIds"
