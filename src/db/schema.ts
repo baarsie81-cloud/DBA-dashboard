@@ -90,6 +90,7 @@ export const mortgageCases = pgTable(
     svn: boolean("svn").notNull().default(false),
     /** Signal that the case is ready and waiting to pass. */
     readyForPassing: boolean("ready_for_passing").notNull().default(false),
+    hasPassed: boolean("has_passed").notNull().default(false),
     /** Administrative dossier year (not derived from dates). */
     dossierYear: integer("dossier_year"),
     /** Deterministic key for DBA Excel re-import; null for manually created cases. */
