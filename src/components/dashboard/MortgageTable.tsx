@@ -371,7 +371,14 @@ function renderColumnCell(
             "whitespace-nowrap tabular-nums text-dba-charcoal",
           )}
         >
-          {formatDateNl(dossier.closingDate)}
+          <span className="inline-flex items-center gap-2">
+            {formatDateNl(dossier.closingDate)}
+            {dossier.hasPassed ? (
+              <Check className="h-4 w-4 text-dba-dark-green" aria-label="Gepasseerd" strokeWidth={2.5} />
+            ) : (
+              <span className="text-dba-muted" aria-label="Nog niet gepasseerd">☐</span>
+            )}
+          </span>
         </td>
       );
     case "ready_for_passing":
@@ -386,7 +393,7 @@ function renderColumnCell(
           {dossier.readyForPassing ? (
             <Check
               className="h-4 w-4 text-dba-dark-green"
-              aria-label="Passeren"
+              aria-label="Finaal akkoord"
               strokeWidth={2.5}
             />
           ) : (
