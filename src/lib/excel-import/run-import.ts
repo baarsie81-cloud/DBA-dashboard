@@ -564,7 +564,7 @@ export async function executeImport(
             notes: payload.notes,
             phase: payload.phase,
             legacyImportKey: payload.legacyImportKey,
-            // SVN / Passeren / dossier_year / invoice_number are dashboard-only —
+            // SVN / Finaal akkoord / Gepasseerd / dossier_year / invoice_number are dashboard-only —
             // never overwrite on Excel reimport.
             updatedAt: new Date(),
           })
