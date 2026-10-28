@@ -101,6 +101,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
 
   const svn = formData.get("svn") != null;
   const readyForPassing = formData.get("readyForPassing") != null;
+  const hasPassed = formData.get("hasPassed") != null;
 
   const dossierYearRaw = emptyToNull(formData.get("dossierYear"));
   let dossierYear: number | null = null;
@@ -229,6 +230,7 @@ export function parseMortgageFormData(formData: FormData): ParsedMortgageForm {
       notes: emptyToNull(formData.get("notes")),
       svn,
       readyForPassing,
+      hasPassed,
       dossierYear,
       phase: phaseRaw as DbMortgagePhase,
     },

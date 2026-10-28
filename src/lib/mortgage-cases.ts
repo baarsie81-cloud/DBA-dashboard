@@ -52,6 +52,7 @@ export function mapCaseToDossier(row: MortgageCaseRow): MortgageDossier {
     lender: row.lenderName,
     svn: row.svn,
     readyForPassing: row.readyForPassing,
+    hasPassed: row.hasPassed,
     dossierYear: row.dossierYear,
     principal: toAmount(row.principalAmount),
     fee: toAmount(row.fee),

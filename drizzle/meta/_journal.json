@@ -64,6 +64,13 @@
       "when": 1792000000000,
       "tag": "0008_invoice_number",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793200000000,
+      "tag": "0009_has_passed",
+      "breakpoints": true
     }
   ]
 }

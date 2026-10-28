@@ -138,7 +138,7 @@ export const MORTGAGE_COLUMN_META: Record<
   },
   ready_for_passing: {
     key: "ready_for_passing",
-    label: "Passeren",
+    label: "Finaal akkoord",
   },
   fee_processing_date: {
     key: "fee_processing_date",

@@ -16,6 +16,7 @@ export type MortgageDossier = {
   lender: string | null;
   svn: boolean;
   readyForPassing: boolean;
+  hasPassed: boolean;
   dossierYear: number | null;
   principal: number | null;
   fee: number | null;
