@@ -438,7 +438,7 @@ export function MortgageForm({
               defaultChecked={initial?.readyForPassing ?? false}
               className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green"
             />
-            <span>Passeren</span>
+            <span>Finaal akkoord</span>
           </label>
         </div>
 
@@ -539,6 +539,16 @@ export function MortgageForm({
               defaultValue={dateForInput(initial?.passingDate)}
               className={fieldClass}
             />
+            <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-dba-charcoal">
+              <input
+                type="checkbox"
+                name="hasPassed"
+                value="true"
+                defaultChecked={initial?.hasPassed ?? false}
+                className="h-4 w-4 rounded border-dba-border text-dba-dark-green focus-visible:ring-2 focus-visible:ring-dba-green"
+              />
+              <span>Gepasseerd</span>
+            </label>
           </Field>
         </div>
 
