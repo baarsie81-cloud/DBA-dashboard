@@ -1,4 +1,4 @@
-import { and, eq, sql, type SQL } from "drizzle-orm";
+import { and, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   advisors,
@@ -6,6 +6,7 @@ import {
   mortgageCaseAdvisors,
   mortgageCases,
 } from "@/db/schema";
+import { buildMortgageDistribution } from "@/lib/mortgage-distribution";
 import type { OverviewFilters } from "@/lib/overview-params";
 
 export type OverviewKpis = {
@@ -229,4 +230,33 @@ export async function getLenderStatistics(
     feeCompleted: toNumber(row.feeCompleted),
     averageFee: Math.round(toNumber(row.averageFee)),
   }));
+}
+
+/** Read-only distribution: year/advisor apply; phase/lender selections do not.
+ * EXISTS in buildOverviewWhere preserves one row per dossier, including shared cases.
+ */
+export async function getMortgageDistribution(filters: OverviewFilters) {
+  const rows = await getDb()
+    .select({
+      mortgageType: mortgageCases.mortgageType,
+      lenderId: mortgageCases.lenderId,
+      lenderName: lenders.name,
+      count: sql<string>`count(*)`,
+      principalTotal: sql<string | null>`sum(${mortgageCases.principalAmount})`,
+      missingPrincipalCount: sql<string>`count(*) - count(${mortgageCases.principalAmount})`,
+    })
+    .from(mortgageCases)
+    .leftJoin(lenders, eq(mortgageCases.lenderId, lenders.id))
+    .where(and(
+      buildOverviewWhere({ ...filters, phase: null, lenderId: null }),
+      inArray(mortgageCases.phase, ["in_behandeling", "afgehandeld"]),
+    ))
+    .groupBy(mortgageCases.mortgageType, mortgageCases.lenderId, lenders.name);
+
+  return buildMortgageDistribution(rows.map((row) => ({
+    ...row,
+    count: Number(row.count),
+    principalTotal: row.principalTotal == null ? null : Number(row.principalTotal),
+    missingPrincipalCount: Number(row.missingPrincipalCount),
+  })));
 }

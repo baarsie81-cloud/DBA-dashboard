@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { OverviewFilters } from "@/components/dashboard/OverviewFilters";
+import { MortgageDistributionTables } from "@/components/dashboard/MortgageDistributionTables";
 import { OverviewTables } from "@/components/dashboard/OverviewTables";
 import { listAdvisors } from "@/db/queries/advisors";
 import { listLenders } from "@/db/queries/lenders";
@@ -9,6 +10,7 @@ import {
   getAdvisorStatistics,
   getLenderStatistics,
   getOverviewKpis,
+  getMortgageDistribution,
 } from "@/db/queries/statistics";
 import { formatCurrency } from "@/lib/format";
 import { parseOverviewParams } from "@/lib/overview-params";
@@ -28,12 +30,13 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const filters = parseOverviewParams(params);
 
-  const [advisors, lenders, kpis, advisorRows, lenderRows] = await Promise.all([
+  const [advisors, lenders, kpis, advisorRows, lenderRows, distribution] = await Promise.all([
     listAdvisors(),
     listLenders(),
     getOverviewKpis(filters),
     getAdvisorStatistics(filters),
     getLenderStatistics(filters),
+    getMortgageDistribution(filters),
   ]);
 
   const volumeKpis: KpiItem[] = [
@@ -114,6 +117,13 @@ export default async function OverzichtPage({ searchParams }: PageProps) {
       </div>
 
       <OverviewTables advisorRows={advisorRows} lenderRows={lenderRows} />
+      <MortgageDistributionTables
+        categories={distribution}
+        year={filters.year}
+        advisorName={filters.advisorId
+          ? advisors.find((advisor) => advisor.id === filters.advisorId)?.name ?? "Onbekende adviseur"
+          : "Alle adviseurs"}
+      />
     </div>
   );
 }
