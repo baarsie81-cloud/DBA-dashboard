@@ -50,7 +50,11 @@ async function main() {
   assert.match(html, /Dossierjaar 2026/);
   assert.match(html, /fase- en geldverstrekkerfilters/);
   const emptyHtml = renderToStaticMarkup(createElement(MortgageDistributionTables, { categories: empty, year: null, advisorName: "Alle adviseurs" }));
-  assert.equal((emptyHtml.match(/Geen dossiers voor deze selectie/g) ?? []).length, 7);
+  assert.equal((emptyHtml.match(/Geen dossiers voor deze selectie/g) ?? []).length, 1);
+  assert.equal((html.match(/<option /g) ?? []).length, 7);
+  assert.equal((html.match(/<table /g) ?? []).length, 1);
+  assert.match(html, /<option value="Starter" selected="">Starter<\/option>/);
+  assert.match(html, /Dossiers zonder dossierjaar tellen alleen mee bij Alle jaren/);
   assert.doesNotMatch(emptyHtml, />100%<|NaN|Infinity/);
 
   // Capture the actual Drizzle query via the existing lazy database slot.
@@ -78,7 +82,8 @@ async function main() {
     (8, 'Ophoger', '${lenderB}'::uuid, 300.03::numeric, 'in_behandeling', 2026),
     (9, 'Uit Elkaar Gaan', '${lenderA}'::uuid, 400.04::numeric, 'afgehandeld', 2026),
     (10, 'Familie', '${lenderA}'::uuid, 500.05::numeric, 'afgehandeld', 2026),
-    (11, 'Zakelijk', '${lenderB}'::uuid, 600.06::numeric, 'in_behandeling', 2026)
+    (11, 'Zakelijk', '${lenderB}'::uuid, 600.06::numeric, 'in_behandeling', 2026),
+    (12, 'Starter', '${lenderA}'::uuid, 500.05::numeric, 'afgehandeld', 2027)
   ), lenders(id, name) AS (VALUES ('${lenderA}'::uuid, 'Bank A'), ('${lenderB}'::uuid, 'Bank B')),
   mortgage_case_advisors(mortgage_case_id, advisor_id) AS (VALUES (1, '${advisorA}'::uuid), (1, '${advisorB}'::uuid), (2, '${advisorB}'::uuid), (5, '${advisorA}'::uuid))`;
   const baseFilters: OverviewFilters = { year: null, advisorId: null, phase: null, lenderId: null };
@@ -87,6 +92,9 @@ async function main() {
       all: baseFilters,
       ignoredFilters: { ...baseFilters, phase: "prospect" as const, lenderId: lenderA },
       year: { ...baseFilters, year: 2026 },
+      year2027: { ...baseFilters, year: 2027 },
+      year2029: { ...baseFilters, year: 2029 },
+      year2030: { ...baseFilters, year: 2030 },
       advisor: { ...baseFilters, advisorId: advisorA },
       yearAdvisor: { ...baseFilters, year: 2026, advisorId: advisorB },
       empty: { ...baseFilters, year: 2028 },
