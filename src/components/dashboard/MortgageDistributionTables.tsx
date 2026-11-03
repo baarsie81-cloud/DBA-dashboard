@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { MortgageDistributionCategory } from "@/lib/mortgage-distribution";
 
@@ -28,6 +31,9 @@ export function MortgageDistributionTables({
   year: number | null;
   advisorName: string;
 }) {
+  const [selectedCategory, setSelectedCategory] = useState("Starter");
+  const category = categories.find((item) => item.category === selectedCategory);
+
   return (
     <section aria-labelledby="mortgage-distribution-title" className="flex flex-col gap-3">
       <div>
@@ -43,9 +49,22 @@ export function MortgageDistributionTables({
           Afwijkende of ontbrekende categorieën vallen onder Overig / niet ingedeeld.
           Bij ontbrekende bedragen wordt alleen de bekende hoofdsom getoond, met het aantal ontbrekende bedragen.
           Afgeronde percentages kunnen samen iets afwijken van 100%.
+          Dossiers zonder dossierjaar tellen alleen mee bij Alle jaren.
         </p>
       </div>
-      {categories.map((category) => (
+      <label className="flex flex-col gap-1 text-sm font-medium text-dba-charcoal sm:max-w-xs">
+        Hypotheekcategorie
+        <select
+          value={selectedCategory}
+          onChange={(event) => setSelectedCategory(event.target.value)}
+          className="h-10 rounded-lg border border-dba-border bg-dba-surface px-3 text-sm text-dba-charcoal outline-none focus-visible:border-dba-green focus-visible:ring-2 focus-visible:ring-dba-green focus-visible:ring-offset-1"
+        >
+          {categories.map((item) => (
+            <option key={item.category} value={item.category}>{item.category}</option>
+          ))}
+        </select>
+      </label>
+      {category ? (
         <div key={category.category} className="overflow-hidden rounded-xl border border-dba-border bg-dba-surface shadow-[0_1px_2px_rgba(51,53,54,0.03)]">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[540px] border-collapse text-sm">
@@ -83,7 +102,7 @@ export function MortgageDistributionTables({
             </table>
           </div>
         </div>
-      ))}
+      ) : null}
     </section>
   );
 }
