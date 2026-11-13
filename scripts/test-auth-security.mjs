@@ -146,11 +146,11 @@ await check('session inspection never renews and renewal cannot revive expired s
   assert.equal(before.expiresAt, e.now() + 1800000);
   assert.equal(e.writes.length, writesBefore);
   for (const origin of ['https://other.example', null, 'null']) {
-    const request = new Request('https://dashboard.example/api/session', { method: 'POST', headers: origin === null ? {} : { origin } });
+    const request = new Request('https://dashboard.example/api/session', { method: 'POST', headers: origin === null ? { host: 'dashboard.example' } : { host: 'dashboard.example', origin } });
     assert.equal((await route.POST(request)).status, 403);
   }
   assert.equal(e.writes.length, writesBefore);
-  const request = () => new Request('https://dashboard.example/api/session', { method: 'POST', headers: { origin: 'https://dashboard.example' } });
+  const request = () => new Request('https://dashboard.example/api/session', { method: 'POST', headers: { host: 'dashboard.example', origin: 'https://dashboard.example' } });
   const response = await route.POST(request());
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('cache-control'), 'no-store');

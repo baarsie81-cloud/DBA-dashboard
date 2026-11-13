@@ -12,7 +12,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   // SameSite is additional protection; renewal requires an explicit same origin.
-  if (request.headers.get("origin") !== new URL(request.url).origin) {
+  // Next.js can use an internal hostname in request.url. Compare the browser's
+  // Origin to the actual Host, with the protocol supplied by the deployment.
+  const host = request.headers.get("host");
+  const protocol = request.headers.get("x-forwarded-proto") ?? new URL(request.url).protocol.slice(0, -1);
+  if (
+    !host ||
+    (protocol !== "https" && protocol !== "http") ||
+    request.headers.get("origin") !== `${protocol}://${host}`
+  ) {
     return Response.json({ error: "Forbidden" }, { status: 403, headers });
   }
 
