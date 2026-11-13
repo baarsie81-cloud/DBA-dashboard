@@ -12,7 +12,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "auth:hash": "tsx scripts/hash-password.ts"
+    "auth:hash": "tsx scripts/hash-password.ts",
+    "test:auth": "node scripts/test-auth-security.mjs && node scripts/test-session-activity.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

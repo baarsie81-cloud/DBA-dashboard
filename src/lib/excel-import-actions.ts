@@ -1,5 +1,6 @@
 "use server";
 
+import { requireSession } from "@/lib/auth/session";
 import { MAX_UPLOAD_BYTES } from "@/lib/excel-import/constants";
 import { parseDbaWorkbook } from "@/lib/excel-import/parse-workbook";
 import {
@@ -48,6 +49,7 @@ async function readXlsxFile(
 export async function previewExcelImportAction(
   formData: FormData,
 ): Promise<PreviewActionResult> {
+  await requireSession();
   const read = await readXlsxFile(formData);
   if (!read.ok) return read;
 
@@ -66,6 +68,7 @@ export async function previewExcelImportAction(
 export async function executeExcelImportAction(
   formData: FormData,
 ): Promise<ExecuteActionResult> {
+  await requireSession();
   const read = await readXlsxFile(formData);
   if (!read.ok) return read;
 

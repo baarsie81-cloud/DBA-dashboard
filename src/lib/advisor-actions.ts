@@ -1,5 +1,6 @@
 "use server";
 
+import { requireSession } from "@/lib/auth/session";
 import { revalidatePath } from "next/cache";
 import { MORTGAGE_VIEW_PATHS } from "@/lib/mortgage-phase-config";
 import {
@@ -43,6 +44,7 @@ export async function createAdvisorAction(
   _prev: AdvisorActionState,
   formData: FormData,
 ): Promise<AdvisorActionState> {
+  await requireSession();
   const parsed = parseAdvisorForm(formData);
   if (!parsed.ok) {
     return {
@@ -77,6 +79,7 @@ export async function updateAdvisorAction(
   _prev: AdvisorActionState,
   formData: FormData,
 ): Promise<AdvisorActionState> {
+  await requireSession();
   const id = String(formData.get("id") ?? "").trim();
   if (!id) {
     return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };

@@ -1,3 +1,4 @@
+import { requireSession } from "@/lib/auth/session";
 import { and, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
@@ -100,6 +101,7 @@ function buildOverviewWhere(filters: OverviewFilters): SQL | undefined {
 export async function getOverviewKpis(
   filters: OverviewFilters,
 ): Promise<OverviewKpis> {
+  await requireSession();
   const db = getDb();
   const where = buildOverviewWhere(filters);
 
@@ -137,6 +139,7 @@ export async function getOverviewKpis(
 export async function getAdvisorStatistics(
   filters: OverviewFilters,
 ): Promise<AdvisorStatsRow[]> {
+  await requireSession();
   const db = getDb();
   const where = buildOverviewWhere(filters);
 
@@ -189,6 +192,7 @@ export async function getAdvisorStatistics(
 export async function getLenderStatistics(
   filters: OverviewFilters,
 ): Promise<LenderStatsRow[]> {
+  await requireSession();
   const db = getDb();
   const where = buildOverviewWhere(filters);
 
@@ -236,6 +240,7 @@ export async function getLenderStatistics(
  * EXISTS in buildOverviewWhere preserves one row per dossier, including shared cases.
  */
 export async function getMortgageDistribution(filters: OverviewFilters) {
+  await requireSession();
   const rows = await getDb()
     .select({
       mortgageType: mortgageCases.mortgageType,

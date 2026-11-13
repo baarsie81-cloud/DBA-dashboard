@@ -1,3 +1,4 @@
+import { requireSession } from "@/lib/auth/session";
 import { and, eq, gte, isNull, lt, lte, sql, type SQL } from "drizzle-orm";
 import type {
   MortgageDeadlineFilter,
@@ -232,6 +233,7 @@ export async function getMortgageCasesByPhase(
   phase: DbMortgagePhase,
   filters?: Partial<MortgageListFilters>,
 ): Promise<MortgageCaseRow[]> {
+  await requireSession();
   const db = getDb();
   const sort = filters?.sort ?? "passing_date";
   const direction = filters?.direction ?? "asc";
@@ -271,6 +273,7 @@ export async function getMortgageCasesByPhase(
 export async function getMortgageCaseById(
   id: string,
 ): Promise<MortgageCaseDetail | null> {
+  await requireSession();
   const db = getDb();
   const rows = await db
     .select({
@@ -317,6 +320,7 @@ export async function getMortgageCaseById(
 export async function createMortgageCase(
   input: MortgageCaseWriteInput,
 ): Promise<MortgageCase> {
+  await requireSession();
   const db = getDb();
 
   return db.transaction(async (tx) => {
@@ -368,6 +372,7 @@ export async function updateMortgageCase(
   id: string,
   input: MortgageCaseWriteInput,
 ): Promise<MortgageCase | null> {
+  await requireSession();
   const db = getDb();
 
   return db.transaction(async (tx) => {
@@ -427,6 +432,7 @@ export async function updateMortgageCasePhase(
   id: string,
   phase: DbMortgagePhase,
 ): Promise<MortgageCase | null> {
+  await requireSession();
   const db = getDb();
   const [updated] = await db
     .update(mortgageCases)
@@ -441,6 +447,7 @@ export async function updateMortgageCasePhase(
 }
 
 export async function deleteMortgageCase(id: string): Promise<boolean> {
+  await requireSession();
   const db = getDb();
   const deleted = await db
     .delete(mortgageCases)

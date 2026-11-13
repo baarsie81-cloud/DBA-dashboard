@@ -1,6 +1,7 @@
 /** Fictional fixtures only. Run: npx tsx scripts/verify-mortgage-distribution.ts
  * --sql emits read-only CTE queries for execution against PostgreSQL, without tables/writes.
  */
+import { withTestSession } from "./with-test-session";
 import assert from "node:assert/strict";
 import { drizzle } from "drizzle-orm/pg-proxy";
 import { createElement } from "react";
@@ -116,4 +117,4 @@ async function main() {
     console.log("verify-mortgage-distribution: OK (categories, percentages, sums, missing values, empty states, rendering and query generation)");
   }
 }
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+withTestSession(main).catch((error) => { console.error(error); process.exitCode = 1; });

@@ -1,3 +1,4 @@
+import { requireSession } from "@/lib/auth/session";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { dashboardSettings } from "@/db/schema";
@@ -10,6 +11,7 @@ import {
 export async function getDashboardSetting(
   key: string,
 ): Promise<string | null> {
+  await requireSession();
   const db = getDb();
   const rows = await db
     .select({ value: dashboardSettings.value })
@@ -24,6 +26,7 @@ export async function setDashboardSetting(
   key: string,
   value: string,
 ): Promise<void> {
+  await requireSession();
   const db = getDb();
   await db
     .insert(dashboardSettings)
@@ -42,6 +45,7 @@ export async function setDashboardSetting(
 }
 
 export async function getMortgageColumnOrder(): Promise<MortgageColumnKey[]> {
+  await requireSession();
   const stored = await getDashboardSetting(MORTGAGE_COLUMN_ORDER_SETTING_KEY);
   return parseMortgageColumnOrderJson(stored);
 }
@@ -49,6 +53,7 @@ export async function getMortgageColumnOrder(): Promise<MortgageColumnKey[]> {
 export async function saveMortgageColumnOrder(
   order: MortgageColumnKey[],
 ): Promise<void> {
+  await requireSession();
   await setDashboardSetting(
     MORTGAGE_COLUMN_ORDER_SETTING_KEY,
     JSON.stringify(order),

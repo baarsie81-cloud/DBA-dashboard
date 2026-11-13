@@ -8,6 +8,7 @@ import {
 } from "./config";
 
 type SessionPayload = {
+  version: 2;
   username: string;
   exp: number;
 };
@@ -30,20 +31,26 @@ function sign(encodedPayload: string, secret: string): string {
   return createHmac("sha256", secret).update(encodedPayload).digest("base64url");
 }
 
-function createToken(username: string): string {
+function createToken(username: string): { token: string; expiresAt: number } {
   const secret = getSessionSecret();
   const payload: SessionPayload = {
+    version: 2,
     username,
     exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS,
   };
   const encoded = encodePayload(payload);
-  return `${encoded}.${sign(encoded, secret)}`;
+  return {
+    token: `${encoded}.${sign(encoded, secret)}`,
+    expiresAt: payload.exp * 1000,
+  };
 }
 
 function parseToken(token: string): SessionPayload | null {
   try {
     const secret = getSessionSecret();
-    const [encoded, signature] = token.split(".");
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [encoded, signature] = parts;
     if (!encoded || !signature) return null;
 
     const expected = sign(encoded, secret);
@@ -58,9 +65,13 @@ function parseToken(token: string): SessionPayload | null {
     ) as SessionPayload;
 
     if (
+      payload.version !== 2 ||
       typeof payload.username !== "string" ||
-      typeof payload.exp !== "number" ||
-      payload.exp < Math.floor(Date.now() / 1000)
+      !process.env.AUTH_USERNAME ||
+      payload.username !== process.env.AUTH_USERNAME ||
+      !Number.isSafeInteger(payload.exp) ||
+      payload.exp <= Math.floor(Date.now() / 1000) ||
+      payload.exp > Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS
     ) {
       return null;
     }
@@ -81,13 +92,17 @@ function cookieOptions() {
   };
 }
 
-export async function createSession(username: string): Promise<void> {
+export async function createSession(username: string): Promise<number> {
   const jar = await cookies();
-  jar.set(SESSION_COOKIE_NAME, createToken(username), cookieOptions());
+  const { token, expiresAt } = createToken(username);
+  jar.set(SESSION_COOKIE_NAME, token, cookieOptions());
+  jar.delete("dba_session");
+  return expiresAt;
 }
 
 export async function destroySession(): Promise<void> {
   const jar = await cookies();
+  jar.delete("dba_session");
   jar.set(SESSION_COOKIE_NAME, "", {
     ...cookieOptions(),
     maxAge: 0,
