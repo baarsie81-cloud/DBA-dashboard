@@ -1,3 +1,4 @@
+import { requireSession } from "@/lib/auth/session";
 import { asc, count, eq, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
@@ -39,6 +40,7 @@ export class LenderOperationError extends Error {
 export async function getLenderOptions(
   includeId?: string | null,
 ): Promise<LenderOption[]> {
+  await requireSession();
   const db = getDb();
 
   const rows = await db
@@ -59,11 +61,13 @@ export async function getLenderOptions(
 }
 
 export async function getActiveLenders(): Promise<LenderOption[]> {
+  await requireSession();
   return getLenderOptions(null);
 }
 
 /** All lenders, including inactive records. */
 export async function listLenders(): Promise<LenderOption[]> {
+  await requireSession();
   const db = getDb();
   return db
     .select({
@@ -77,6 +81,7 @@ export async function listLenders(): Promise<LenderOption[]> {
 
 /** All lenders with their current case count for the management page. */
 export async function listManagedLenders(): Promise<ManagedLender[]> {
+  await requireSession();
   const db = getDb();
   const rows = await db
     .select({
@@ -94,6 +99,7 @@ export async function listManagedLenders(): Promise<ManagedLender[]> {
 }
 
 export async function getLenderById(id: string): Promise<Lender | null> {
+  await requireSession();
   const db = getDb();
   const rows = await db
     .select()
@@ -108,6 +114,7 @@ export async function findLenderByName(
   name: string,
   excludeId?: string | null,
 ): Promise<LenderOption | null> {
+  await requireSession();
   const db = getDb();
   const normalized = name.trim().toLowerCase();
   const rows = await db
@@ -129,6 +136,7 @@ export async function findLenderByName(
 export async function findLenderByAlias(
   name: string,
 ): Promise<LenderOption | null> {
+  await requireSession();
   const db = getDb();
   const rows = await db
     .select({
@@ -144,6 +152,7 @@ export async function findLenderByAlias(
 }
 
 export async function createLender(input: LenderWriteInput): Promise<Lender> {
+  await requireSession();
   const db = getDb();
   const [created] = await db
     .insert(lenders)
@@ -160,6 +169,7 @@ export async function updateLender(
   id: string,
   input: LenderWriteInput,
 ): Promise<Lender | null> {
+  await requireSession();
   const db = getDb();
   const [updated] = await db
     .update(lenders)
@@ -177,6 +187,7 @@ export async function mergeLenders(
   sourceId: string,
   targetId: string,
 ): Promise<{ movedCaseCount: number }> {
+  await requireSession();
   if (sourceId === targetId) {
     throw new LenderOperationError("SAME_LENDER");
   }
@@ -227,6 +238,7 @@ export async function mergeLenders(
 }
 
 export async function deleteUnusedLender(id: string): Promise<void> {
+  await requireSession();
   const db = getDb();
   await db.transaction(async (tx) => {
     const [lender] = await tx

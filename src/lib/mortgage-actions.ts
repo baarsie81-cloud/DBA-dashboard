@@ -1,5 +1,6 @@
 "use server";
 
+import { requireSession } from "@/lib/auth/session";
 import { revalidatePath } from "next/cache";
 import { MORTGAGE_VIEW_PATHS } from "@/lib/mortgage-phase-config";
 import { getAdvisorOptions } from "@/db/queries/advisors";
@@ -42,6 +43,7 @@ export async function createMortgageCaseAction(
   _prev: MortgageActionState,
   formData: FormData,
 ): Promise<MortgageActionState> {
+  await requireSession();
   const parsed = parseMortgageFormData(formData);
   if (!parsed.ok) {
     return {
@@ -64,6 +66,7 @@ export async function updateMortgageCaseAction(
   _prev: MortgageActionState,
   formData: FormData,
 ): Promise<MortgageActionState> {
+  await requireSession();
   const id = String(formData.get("id") ?? "").trim();
   if (!id) {
     return { ok: false, error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -96,11 +99,13 @@ export async function updateMortgageCaseAction(
 }
 
 export async function loadMortgageCaseAction(id: string) {
+  await requireSession();
   return getMortgageCaseById(id);
 }
 
 /** Load a case for editing, including inactive advisor/lender if currently linked. */
 export async function loadDossierFormAction(id: string) {
+  await requireSession();
   const detail = await getMortgageCaseById(id);
   if (!detail) return null;
 
@@ -115,6 +120,7 @@ export async function loadDossierFormAction(id: string) {
 export async function deleteMortgageCaseAction(
   id: string,
 ): Promise<MortgageActionState> {
+  await requireSession();
   if (!id.trim()) {
     return {
       ok: false,
@@ -144,6 +150,7 @@ export async function updateMortgageCasePhaseAction(
   id: string,
   phase: string,
 ): Promise<MortgageActionState> {
+  await requireSession();
   if (!id.trim() || !isMortgagePhase(phase)) {
     return { ok: false, error: "Fase wijzigen is niet gelukt. Probeer het opnieuw." };
   }
@@ -178,6 +185,7 @@ export type ColumnOrderActionResult = {
 export async function saveMortgageColumnOrderAction(
   order: string[],
 ): Promise<ColumnOrderActionResult> {
+  await requireSession();
   const normalized = normalizeMortgageColumnOrder(order);
 
   try {
@@ -193,6 +201,7 @@ export async function saveMortgageColumnOrderAction(
 }
 
 export async function resetMortgageColumnOrderAction(): Promise<ColumnOrderActionResult> {
+  await requireSession();
   try {
     const order = [...DEFAULT_MORTGAGE_COLUMN_ORDER];
     await saveMortgageColumnOrder(order);
@@ -207,6 +216,7 @@ export async function resetMortgageColumnOrderAction(): Promise<ColumnOrderActio
 }
 
 export async function loadMortgageColumnOrderAction(): Promise<MortgageColumnKey[]> {
+  await requireSession();
   try {
     return await getMortgageColumnOrder();
   } catch {

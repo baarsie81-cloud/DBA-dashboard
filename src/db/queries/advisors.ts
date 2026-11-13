@@ -1,3 +1,4 @@
+import { requireSession } from "@/lib/auth/session";
 import { asc, eq, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { advisors, type Advisor } from "@/db/schema";
@@ -17,6 +18,7 @@ export type AdvisorWriteInput = {
 export async function getAdvisorOptions(
   includeIds?: string | string[] | null,
 ): Promise<AdvisorOption[]> {
+  await requireSession();
   const db = getDb();
   const ids = Array.isArray(includeIds)
     ? includeIds.filter(Boolean)
@@ -42,11 +44,13 @@ export async function getAdvisorOptions(
 }
 
 export async function getActiveAdvisors(): Promise<AdvisorOption[]> {
+  await requireSession();
   return getAdvisorOptions(null);
 }
 
 /** All advisors for the management page. */
 export async function listAdvisors(): Promise<AdvisorOption[]> {
+  await requireSession();
   const db = getDb();
   return db
     .select({
@@ -59,6 +63,7 @@ export async function listAdvisors(): Promise<AdvisorOption[]> {
 }
 
 export async function getAdvisorById(id: string): Promise<Advisor | null> {
+  await requireSession();
   const db = getDb();
   const rows = await db
     .select()
@@ -73,6 +78,7 @@ export async function findAdvisorByName(
   name: string,
   excludeId?: string | null,
 ): Promise<AdvisorOption | null> {
+  await requireSession();
   const db = getDb();
   const normalized = name.trim().toLowerCase();
   const rows = await db
@@ -92,6 +98,7 @@ export async function findAdvisorByName(
 }
 
 export async function createAdvisor(input: AdvisorWriteInput): Promise<Advisor> {
+  await requireSession();
   const db = getDb();
   const [created] = await db
     .insert(advisors)
@@ -108,6 +115,7 @@ export async function updateAdvisor(
   id: string,
   input: AdvisorWriteInput,
 ): Promise<Advisor | null> {
+  await requireSession();
   const db = getDb();
   const [updated] = await db
     .update(advisors)
