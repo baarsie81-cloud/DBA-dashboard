@@ -12,7 +12,7 @@ const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, '..');
 const denied = new Error('AUTH_REQUIRED');
 let checks = 0;
-function environment({ allow = false } = {}) {
+function environment({ allow = false, mocks = {} } = {}) {
   let now = 1_800_000_000_000;
   const env = { NODE_ENV: 'production', AUTH_USERNAME: 'synthetic-user', SESSION_SECRET: 'synthetic-test-secret-never-used-in-production-123456' };
   const cookieValues = new Map();
@@ -37,6 +37,7 @@ function environment({ allow = false } = {}) {
     const source = readFileSync(absolute, 'utf8');
     const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
     function resolve(id) {
+      if (Object.hasOwn(mocks, id)) return mocks[id];
       if (id === 'next/headers') return { cookies: async () => jar };
       if (id === 'next/navigation') return { redirect: () => { throw denied; } };
       if (id === 'next/cache') return { revalidatePath: () => {} };
@@ -58,6 +59,92 @@ function environment({ allow = false } = {}) {
   return { load, env, cookieValues, writes, advance: milliseconds => { now += milliseconds; }, now: () => now, guardCalls: () => guardCalls, dbCalls: () => dbCalls };
 }
 async function check(name, run) { await run(); checks++; console.log(`PASS ${name}`); }
+
+async function testLogin({
+  rateCheck,
+  environmentName = 'production',
+  clientIp = '192.0.2.15',
+  hasHost = true,
+  validPassword = true,
+}) {
+  const events = [];
+  const redirected = new Error('LOGIN_REDIRECT');
+  const e = environment({ mocks: {
+    'next/headers': {
+      headers: async () => new Headers({
+        host: 'untrusted.example',
+        'x-forwarded-for': '192.0.2.99',
+        'x-real-ip': '192.0.2.99',
+        'x-vercel-forwarded-for': clientIp,
+      }),
+    },
+    'next/navigation': { redirect: pathname => { events.push(['redirect', pathname]); throw redirected; } },
+    '@vercel/firewall': {
+      checkRateLimit: async (id, options) => {
+        events.push(['rate limit', id, JSON.parse(JSON.stringify(options))]);
+        return rateCheck();
+      },
+    },
+    './password': { verifyCredentials: async () => { events.push(['password']); return validPassword; } },
+    './session': { createSession: async () => { events.push(['session']); }, DASHBOARD_HOME: '/test-dashboard' },
+  } });
+  Object.assign(e.env, {
+    VERCEL: '1',
+    VERCEL_ENV: environmentName,
+    VERCEL_PROJECT_PRODUCTION_URL: hasHost ? 'production.vercel.app' : undefined,
+    VERCEL_URL: 'deployment.vercel.app',
+  });
+  const form = new FormData();
+  form.set('username', 'synthetic-user');
+  form.set('password', 'synthetic-password');
+  let state;
+  try {
+    state = await e.load('src/lib/auth/actions.ts').loginAction({}, form);
+  } catch (error) {
+    if (error !== redirected) throw error;
+  }
+  return { state, events };
+}
+
+await check('login uses the environment host and trusted client IP before password and session handling', async () => {
+  for (const [environmentName, host] of [['production', 'production.vercel.app'], ['preview', 'deployment.vercel.app']]) {
+    const { state, events } = await testLogin({ environmentName, rateCheck: () => ({ rateLimited: false }) });
+    assert.equal(state, undefined);
+    assert.deepEqual(events, [
+      ['rate limit', 'dba-login-v1', { headers: { host, 'x-real-ip': '192.0.2.15' }, timeout: 1500 }],
+      ['password'],
+      ['session'],
+      ['redirect', '/test-dashboard'],
+    ]);
+  }
+  const { state, events } = await testLogin({ validPassword: false, rateCheck: () => ({ rateLimited: false }) });
+  assert.match(state.error, /Gebruikersnaam of wachtwoord is onjuist/);
+  assert.deepEqual(events.map(([event]) => event), ['rate limit', 'password']);
+});
+
+await check('login refuses rate-limited requests before reaching the password verifier', async () => {
+  const { state, events } = await testLogin({ rateCheck: () => ({ rateLimited: true }) });
+  assert.match(state.error, /Te veel inlogpogingen/);
+  assert.deepEqual(events.map(([event]) => event), ['rate limit']);
+});
+
+await check('login fails closed when Vercel rate-limit configuration or service is unavailable', async () => {
+  for (const rateCheck of [
+    () => ({ rateLimited: false, error: 'not-found' }),
+    () => ({ rateLimited: true, error: 'blocked' }),
+    () => { throw new DOMException('Synthetic SDK timeout', 'TimeoutError'); },
+    () => { throw new Error('Synthetic provider outage'); },
+  ]) {
+    const { state, events } = await testLogin({ rateCheck });
+    assert.match(state.error, /tijdelijk niet beschikbaar/);
+    assert.deepEqual(events.map(([event]) => event), ['rate limit']);
+  }
+  for (const context of [{ clientIp: '' }, { clientIp: 'invalid' }, { hasHost: false }]) {
+    const { state, events } = await testLogin(context);
+    assert.match(state.error, /tijdelijk niet beschikbaar/);
+    assert.deepEqual(events, []);
+  }
+});
 
 await check('all protected server actions reject before validation or database access', async () => {
   let count = 0;
